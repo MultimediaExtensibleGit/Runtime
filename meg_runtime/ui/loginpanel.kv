@@ -1,0 +1,39 @@
+<LoginPanel>:
+    orientation: 'vertical'
+    padding: 30
+    spacing: 30
+    Label:
+        text: 'Repository URL'
+        size_hint_y: None
+        height: 40
+    TextInput:
+        id: repo_url
+        multiline: False
+        write_tab: False
+        size_hint_y: None
+        height: 40
+    Label:
+        text: 'Username'
+        size_hint_y: None
+        height: 40
+    TextInput:
+        id: username
+        multiline: False
+        write_tab: False
+        size_hint_y: None
+        height: 40
+    Label:
+        text: 'Password'
+        size_hint_y: None
+        height: 40
+    TextInput:
+        id: password
+        multiline: False
+        write_tab: False
+        size_hint_y: None
+        height: 40
+    Button:
+        text: 'Open Repository'
+        size_hint_y: None
+        height: 80
+        on_press: root.open_repository()
