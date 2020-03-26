@@ -1,11 +1,11 @@
-<LoginPanel>:
+<ClonePanel>:
     orientation: 'vertical'
-    padding: 30
-    spacing: 30
+    padding: 20
+    spacing: 20
     Label:
         text: 'Repository URL'
         size_hint_y: None
-        height: 40
+        height: 30
     TextInput:
         id: repo_url
         multiline: False
@@ -13,9 +13,19 @@
         size_hint_y: None
         height: 40
     Label:
-        text: 'Username'
+        text: 'Folder'
+        size_hint_y: None
+        height: 30
+    TextInput:
+        id: repo_path
+        multiline: False
+        write_tab: False
         size_hint_y: None
         height: 40
+    Label:
+        text: 'Username'
+        size_hint_y: None
+        height: 30
     TextInput:
         id: username
         multiline: False
@@ -25,15 +35,19 @@
     Label:
         text: 'Password'
         size_hint_y: None
-        height: 40
+        height: 30
     TextInput:
         id: password
         multiline: False
         write_tab: False
         size_hint_y: None
         height: 40
+    Label:
+        id: error_msg
+        size_hint_y: None
+        height: 30
     Button:
         text: 'Open Repository'
         size_hint_y: None
-        height: 80
+        height: 40
         on_press: root.open_repository()

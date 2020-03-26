@@ -1,0 +1,23 @@
+<MainMenuPanel>:
+    # orientation: 'vertical'
+    padding: 30
+    spacing: 30
+    StackLayout:
+        id: nav
+        spacing: 10
+        padding: 10
+        size_hint: (0.4, 1)
+        Button:
+            text: 'Download Project'
+            size_hint_y: None
+            height: 40
+            on_press: root.open_repository()
+    StackLayout:
+        id: repos
+        spacing: 10
+        padding: 10
+        size_hint: (0.5, 1)
+        Label:
+            text: 'Projects'
+            size_hint_y: None
+            height: 40
