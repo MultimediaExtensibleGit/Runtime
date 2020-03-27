@@ -1,20 +1,18 @@
 
-from kivy.lang.builder import Builder
 from kivy.uix.boxlayout import BoxLayout
 from os.path import dirname
 from meg_runtime.git import GitManager
 from meg_runtime.config import Config
 
-Builder.load_file(dirname(__file__) + '/clonepanel.kv')
 
 class ClonePanel(BoxLayout):
     """Setup the cloning panel.
     """
-    def __init__(self, ui_manager, **kwargs):
+    def __init__(self, manager, **kwargs):
         super().__init__(**kwargs)
-        self.ui_manager = ui_manager
+        self.manager = manager
 
-    def open_repository(self):
+    def clone(self):
         """Connect to a given repository."""
         if not self.ids.repo_url.text:
             self.ids.error_msg.text = '* Please enter a repository/project URL'
@@ -28,5 +26,5 @@ class ClonePanel(BoxLayout):
         Config.save(Config.get('path/config'))
         
         # TODO: Need to open up actual view of repo here
-        self.ui_manager.open_repo_panel(self, repo)
+        self.manager.open_repo_panel(self, repo)
 
