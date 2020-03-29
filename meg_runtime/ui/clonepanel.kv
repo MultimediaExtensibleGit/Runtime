@@ -46,8 +46,15 @@
         id: error_msg
         size_hint_y: None
         height: 30
-    Button:
-        text: 'Open Repository'
-        size_hint_y: None
-        height: 40
-        on_press: root.clone()
+    BoxLayout:
+        orientation: 'horizontal'
+        Button:
+            text: 'Open Repository'
+            size_hint_y: None
+            height: 40
+            on_press: root.clone()
+        Button:
+            text: 'Back'
+            size_hint_y: None
+            height: 40
+            on_press: root.back()

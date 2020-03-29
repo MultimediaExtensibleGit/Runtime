@@ -22,13 +22,9 @@
             size_hint_y: None
             height: 40
         Button:
-            text: 'Open Repository'
-            size_hint_y: None
-            height: 40
-            on_press: root.open_repository()
-        Button:
             text: 'View Repositories'
             size_hint_y: None
             height: 40
-            on_press: root.view_repos()
+            on_press: root.open_main_menu()
     FileChooserListView:
+        id: file_chooser

@@ -26,5 +26,11 @@ class ClonePanel(BoxLayout):
         Config.save(Config.get('path/config'))
         
         # TODO: Need to open up actual view of repo here
-        self.manager.open_repo_panel(self, repo)
+        self.manager.close(self)
+        self.manager.open_repo_panel(repo, repo_path=repo_path)
+
+    def back(self):
+        """Go back a page."""
+        self.manager.close(self)
+        self.manager.open_main_menu()
 

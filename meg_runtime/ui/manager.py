@@ -50,24 +50,26 @@ class UIManager(BoxLayout):
         return UIManager.__instance
 
     @staticmethod
-    def open_repo_panel(login_panel, repo):
+    def open_repo_panel(repo, **kwargs):
         """Open a repository panel."""
         manager = UIManager.get_instance()
-        manager.remove_widget(login_panel)
-        manager.add_widget(RepoPanel(UIManager, repo))
+        manager.add_widget(RepoPanel(UIManager, repo, **kwargs))
 
     @staticmethod
-    def open_clone_panel(repo_panel):
+    def open_clone_panel():
         """Open panel for repo cloning."""
         manager = UIManager.get_instance()
-        manager.remove_widget(repo_panel)
         manager.add_widget(ClonePanel(UIManager))
 
     @staticmethod
-    def open_main_menu(panel):
+    def open_main_menu():
         """Open the main menu, closing the old panel."""
         manager = UIManager.get_instance()
-        manager.remove_widget(panel)
         manager.add_widget(MainMenuPanel(UIManager))
+
+    @staticmethod
+    def close(panel):
+        manager = UIManager.get_instance()
+        manager.remove_widget(panel)
 
     # TODO: Add more menu opening/closing methods here
