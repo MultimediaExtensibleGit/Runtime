@@ -1,7 +1,6 @@
 """Runtime library unit testing for git"""
 
 import os
-import sys
 import time
 import shutil
 import tempfile
@@ -9,10 +8,6 @@ import pytest
 from dateutil.tz import gettz
 from datetime import datetime
 from kivy.logger import Logger
-
-if isinstance(sys.path, list) and os.path.dirname(sys.path[0]) not in sys.path:
-    sys.path.insert(1, os.path.dirname(sys.path[0]))
-
 from meg_runtime import GitRepository, GitManager
 
 
