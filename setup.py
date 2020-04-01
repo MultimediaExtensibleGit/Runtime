@@ -10,8 +10,6 @@ runtime_pkg_version = '0.0.0' if 'MEG_RUNTIME_PKG_VERSION' not in os.environ els
 
 required_packages = [
     'kivy',
-    'kivy-deps.glew',
-    'kivy-deps.sdl2',
     'pillow',
     'pygit2',
     'python-dateutil',
@@ -35,5 +33,12 @@ setuptools.setup(
     ],
     python_requires='>=3.7',
     install_requires=required_packages,
-    license='MIT'
+    license='MIT',
+    data_files=[
+        ('meg_runtime/ui', [
+            'meg_runtime/ui/clonepanel.kv',
+            'meg_runtime/ui/mainmenupanel.kv',
+            'meg_runtime/ui/repopanel.kv',
+        ]),
+    ]
 )
