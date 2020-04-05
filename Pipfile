@@ -11,8 +11,11 @@ twine = "*"
 wheel = "*"
 
 [packages]
-kivy = "*"
-pillow = "*"
+PyQt5 = "*"
 pygit2 = "*"
+# pypiwin32 = "*"
 python-dateutil = "*"
 requests = "*"
+
+[pipenv]
+allow_prereleases = true

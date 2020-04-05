@@ -1,16 +1,16 @@
+"""MEG UI Manager
+"""
+from PySide2.QtWidgets import QApplication
 
-from kivy.lang.builder import Builder
-from kivy.logger import Logger
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
 from os.path import dirname
 
 from meg_runtime.ui.mainmenupanel import MainMenuPanel
 from meg_runtime.ui.clonepanel import ClonePanel
 from meg_runtime.ui.repopanel import RepoPanel
+from meg_runtime.logger import Logger
 
 
-class UIManager(BoxLayout):
+class UIManager(object):
     """Main UI manager for the MEG system."""
 
     PANELS = [
@@ -39,11 +39,11 @@ class UIManager(BoxLayout):
                     Logger.warning('MEG UI Manager: Could not load {0} file.'
                                    .format(path))
 
-            # self.add_widget(RepoPanel(self))
-            self.add_widget(MainMenuPanel(UIManager))
+            # TODO: State change
+            main_menu = MainMenuPanel(UIManager)
 
     @staticmethod
-    def get_instance():
+    def run():
         """Get the instance for the UI Manager."""
         if UIManager.__instance is None:
             UIManager.__instance = UIManager()

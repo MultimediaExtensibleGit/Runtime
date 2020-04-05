@@ -3,17 +3,20 @@
 import os
 import setuptools
 
+# TODO: Replace README.md with Runtime.md for package information
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 runtime_pkg_version = '0.0.0' if 'MEG_RUNTIME_PKG_VERSION' not in os.environ else os.environ['MEG_RUNTIME_PKG_VERSION']
 
 required_packages = [
-    'kivy',
+    'PyQt5',
     'pillow',
     'pygit2',
     'python-dateutil',
-    'requests'
+    'requests',
+# Uncomment for windows installation
+#    'pypiwin32',
 ]
 
 setuptools.setup(
@@ -33,12 +36,6 @@ setuptools.setup(
     ],
     python_requires='>=3.7',
     install_requires=required_packages,
-    license='MIT',
-    data_files=[
-        ('meg_runtime/ui', [
-            'meg_runtime/ui/clonepanel.kv',
-            'meg_runtime/ui/mainmenupanel.kv',
-            'meg_runtime/ui/repopanel.kv',
-        ]),
-    ]
+    platforms=['any'],
+    license='MIT'
 )
