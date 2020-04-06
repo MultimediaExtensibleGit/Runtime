@@ -15,7 +15,7 @@ required_packages = [
     'pygit2',
     'python-dateutil',
     'requests',
-#    'pypiwin32',
+    'pywin32',
 ]
 
 setuptools.setup(
