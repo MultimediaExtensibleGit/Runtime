@@ -13,7 +13,7 @@ wheel = "*"
 [packages]
 PyQt5 = "*"
 pygit2 = "*"
-pypiwin32 = "*"
+pywin32 = "*"
 python-dateutil = "*"
 requests = "*"
 
