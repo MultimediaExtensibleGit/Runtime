@@ -21,3 +21,12 @@
 * Build python package
 
   `pipenv run setup.py sdist bdist_wheel`
+
+## Test
+
+* From Runtime directory
+* From Runtime directory
+
+  `pytest`
+  or
+  `python -m pytest`
