@@ -9,7 +9,7 @@ Working directory should be changed by the git module
 
 import os
 from meg_runtime.locking.lockFile import LockFile
-from kivy.logger import Logger
+from meg_runtime.logger import Logger
 
 LOCKFILE_DIR = ".meg" + os.sep
 LOCKFILE_NAME = "locks.json"

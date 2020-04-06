@@ -11,7 +11,7 @@ Working directory should be changed by the git module
 import json
 import os.path
 import time
-from kivy.logger import Logger
+from meg_runtime.logger import Logger
 
 class LockFile:
     """Parse a lockfile and preform locking operations
