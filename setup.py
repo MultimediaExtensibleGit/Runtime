@@ -15,7 +15,6 @@ required_packages = [
     'pygit2',
     'python-dateutil',
     'requests',
-# Uncomment for windows installation
 #    'pypiwin32',
 ]
 
@@ -37,5 +36,6 @@ setuptools.setup(
     python_requires='>=3.7',
     install_requires=required_packages,
     platforms=['any'],
-    license='MIT'
+    license='MIT',
+    include_package_data=True
 )

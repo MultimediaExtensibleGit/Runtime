@@ -1,22 +1,27 @@
 
-from kivy.uix.boxlayout import BoxLayout
+from PyQt5 import QtWidgets, uic
 from os.path import dirname
 
+from meg_runtime.logger import Logger
+from meg_runtime.ui.basepanel import BasePanel
 
-class RepoPanel(BoxLayout):
+
+class RepoPanel(BasePanel):
     """Setup the main file panel.
     """
     def __init__(self, manager, repo=None, repo_path=None, **kwargs):
-        super().__init__(padding=40, spacing=40, **kwargs)
+        super().__init__(**kwargs)
         self.repo = repo
         self.manager = manager
-        if repo_path is not None:
-            self.ids.file_chooser.path = repo_path
+
+        self.main_menu_button = self.findChild(QtWidgets.QPushButton, 'mainMenu')
+        self.main_menu_button.clicked.connect(self.return_to_main_menu)
+
+    def return_to_main_menu(self):
+        """Return to the main menu."""
+        # TODO: Display a warning?
+        self.manager.return_to_main_menu()
         # TODO: Setup repo information, etc.
 
-    def open_main_menu(self):
-        """Open the main menu."""
-        self.manager.close(self)
-        self.manager.open_main_menu()
 
 

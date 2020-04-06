@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>MEG</class>
+ <widget class="QMainWindow" name="MEG">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -20,14 +20,14 @@
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <widget class="QPushButton" name="pushButton_2">
+         <widget class="QPushButton" name="rolesButton">
           <property name="text">
-           <string>Roles</string>
+           <string>Manage Roles</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="downloadButton">
           <property name="text">
            <string>Download Project</string>
           </property>
@@ -87,7 +87,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>24</height>
+     <height>29</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuMEG">

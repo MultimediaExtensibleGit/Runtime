@@ -1,36 +1,32 @@
 
-from kivy.uix.boxlayout import BoxLayout
-from os.path import dirname
+from PyQt5 import QtWidgets, uic
+import pkg_resources
+
 from meg_runtime.git import GitManager
 from meg_runtime.config import Config
+from meg_runtime.logger import Logger
+from meg_runtime.ui.basepanel import BasePanel
 
 
-class ClonePanel(BoxLayout):
+class ClonePanel(BasePanel):
     """Setup the cloning panel.
     """
     def __init__(self, manager, **kwargs):
         super().__init__(**kwargs)
         self.manager = manager
 
+        self.ok_button = self.findChild(QtWidgets.QPushButton, 'okButton')
+        self.ok_button.clicked.connect(self.clone)
+        self.back_button = self.findChild(QtWidgets.QPushButton, 'backButton')
+        self.back_button.clicked.connect(self.return_to_main_menu)
+
     def clone(self):
-        """Connect to a given repository."""
-        if not self.ids.repo_url.text:
-            self.ids.error_msg.text = '* Please enter a repository/project URL'
-            return
+        """Clone the repository."""
+        # Pass control to the manager
+        self.manager.clone()
 
-        repo_path = self.ids.repo_path.text or None
-        repo = GitManager.clone(self.ids.repo_url.text, repo_path=repo_path)
-        repos = Config.get('repos', [])
-        repos.append(repo.path)
-        Config.set('repos', repos)
-        Config.save(Config.get('path/config'))
-        
-        # TODO: Need to open up actual view of repo here
-        self.manager.close(self)
-        self.manager.open_repo_panel(repo, repo_path=repo_path)
+    def return_to_main_menu(self):
+        """Return to the main menu."""
+        self.manager.return_to_main_menu()
 
-    def back(self):
-        """Go back a page."""
-        self.manager.close(self)
-        self.manager.open_main_menu()
 

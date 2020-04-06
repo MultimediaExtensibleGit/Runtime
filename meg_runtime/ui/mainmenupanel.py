@@ -1,32 +1,28 @@
 
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
+from PyQt5 import QtWidgets, uic
+import pkg_resources
+
 from meg_runtime.config import Config
-from os.path import dirname
+from meg_runtime.logger import Logger
+from meg_runtime.ui.basepanel import BasePanel
 
 
-class MainMenuPanel(BoxLayout):
+class MainMenuPanel(BasePanel):
     """Setup a list of cloned repos.
     """
     def __init__(self, manager, **kwargs):
         super().__init__(**kwargs)
         self.manager = manager
 
-        def callback(instance):
-            self.open_repo_panel(instance.repo_path)
+        self.download_button = self.findChild(QtWidgets.QPushButton,
+                                              'downloadButton')
+        # TODO: Attach handlers
+        self.download_button.clicked.connect(self.download)
 
-        # Add the repo buttons to the menu
-        for repo in Config.get('repos', []):
-            button = Button(text=repo, size_hint_y=None, height=40)
-            button.repo_path = repo
-            button.bind(on_press=callback)
-            self.ids.repos.add_widget(button)
-
-    def open_repo_clone(self):
-        """Open a repository."""
-        self.manager.close(self)
+    def download(self):
+        """"Download" or clone a project."""
+        # Pass control to the manager
         self.manager.open_clone_panel()
 
-    def open_repo_panel(self, repo_path):
-        self.manager.close(self)
-        self.manager.open_repo_panel(repo_path)
+
+

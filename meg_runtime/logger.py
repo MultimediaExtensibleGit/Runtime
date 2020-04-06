@@ -5,11 +5,11 @@ class Logger(object):
     """Base MEG logging class."""
 
     @staticmethod
-    def debug(self, message):
+    def debug(message):
         logger = logging.getLogger(__name__)
         logger.debug(message)
 
     @staticmethod
-    def warning(self, message):
+    def warning(message):
         logger = logging.getLogger(__name__)
         logger.debug(message)
