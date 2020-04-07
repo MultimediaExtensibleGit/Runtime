@@ -12,14 +12,11 @@ def generateLocking():
     lock["project/jeffs2ndPart.dwg"] = "bob"
     lock["src/other.txt"] = "bob"
     lock.save()
-    LockingManager._instance = None
+    LockingManager._LockingManager__instance = None
     LockingManager()
-    try:
-        yield len(lock)
-    finally:
-        os.remove(LockingManager.LOCKFILE_DIR + LockingManager.LOCKFILE_NAME)
-        os.rmdir(LockingManager.LOCKFILE_DIR)
-        LockingManager._instance = None
+    yield len(lock)
+    os.remove(LockingManager.LOCKFILE_DIR + LockingManager.LOCKFILE_NAME)
+    os.rmdir(LockingManager.LOCKFILE_DIR)
 
 def test_findLock(generateLocking):
     entry = LockingManager.findLock("project/jeffs2ndPart.dwg")

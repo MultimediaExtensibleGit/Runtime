@@ -19,18 +19,18 @@ class LockingManager:
     """
     LOCKFILE_DIR = ".meg" + os.sep
     LOCKFILE_NAME = "locks.json"
-    _instance = None
+    __instance = None
 
     def __init__(self):
         """
         Args:
             permissionsManager (PermissionsManager): the active permissions manager
         """
-        if not LockingManager._instance is None:
+        if not LockingManager.__instance is None:
             raise Exception("Trying to create a second instance of LockingManager, which is a singleton")
         else:
-            LockingManager._instance = self
-            LockingManager._instance._lockFile = LockFile(LockingManager.LOCKFILE_DIR + LockingManager.LOCKFILE_NAME)
+            LockingManager.__instance = self
+            LockingManager.__instance._lockFile = LockFile(LockingManager.LOCKFILE_DIR + LockingManager.LOCKFILE_NAME)
 
     @staticmethod
     def addLock(filepath, username):
@@ -41,12 +41,14 @@ class LockingManager:
         Returns:
             (bool): was lock sucessfuly added
         """
-        LockingManager._instance.updateLocks()
-        if filepath in LockingManager._instance._lockFile:
+        if LockingManager.__instance is None:
+            LockingManager()
+        LockingManager.__instance.updateLocks()
+        if filepath in LockingManager.__instance._lockFile:
             return False
         else:
-            LockingManager._instance._lockFile[filepath] = username
-            LockingManager._instance.updateLocks()
+            LockingManager.__instance._lockFile[filepath] = username
+            LockingManager.__instance.updateLocks()
             return True
         
     @staticmethod
@@ -58,15 +60,17 @@ class LockingManager:
         Returns:
             (bool): is there still a lock (was the user permitted to remove the lock)
         """
-        LockingManager._instance.updateLocks()
-        lock = LockingManager._instance._lockFile[filepath]
+        if LockingManager.__instance is None:
+            LockingManager()
+        LockingManager.__instance.updateLocks()
+        lock = LockingManager.__instance._lockFile[filepath]
         if(lock is None):
             return True
         elif(lock["user"] == username or False): #TODO check that user role can remove other user's locks
-            del LockingManager._instance._lockFile[filepath] 
+            del LockingManager.__instance._lockFile[filepath] 
         else:
             return False
-        LockingManager._instance.updateLocks()
+        LockingManager.__instance.updateLocks()
         return True
         
     @staticmethod
@@ -78,11 +82,13 @@ class LockingManager:
             (dictionary): lockfile entry for the file
             (None): There is no entry
         """
-        return LockingManager._instance._lockFile[filepath]
+        if LockingManager.__instance is None:
+            LockingManager()
+        return LockingManager.__instance._lockFile[filepath]
 
     @staticmethod
     def locks():
-        return LockingManager._instance._lockFile
+        return LockingManager.__instance._lockFile
 
     @staticmethod
     def updateLocks():
@@ -97,5 +103,7 @@ class LockingManager:
         save date
         if lockfile has changed stage, commit, and push it
         """
-        LockingManager._instance._lockFile.save()
-        LockingManager._instance._lockFile.load()
+        if LockingManager.__instance is None:
+            LockingManager()
+        LockingManager.__instance._lockFile.save()
+        LockingManager.__instance._lockFile.load()

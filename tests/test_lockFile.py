@@ -6,21 +6,23 @@ from meg_runtime.locking.lockFile import LockFile
 @pytest.fixture()
 def generateLockfile():
     fileName = ".meg/templockfile"
-    try:
-        tempFile = LockFile(fileName)
-        yield fileName
-    finally:
-        os.remove(fileName)
-        os.rmdir(".meg")
+    tempFile = LockFile(fileName)
+    yield fileName
+    os.remove(fileName)
+    os.rmdir(".meg")
 
-def test_load(generateLockfile):
+@pytest.fixture()
+def loadEmptyFile():
+    filepath = "./emptyFile"
+    yield filepath
+    if os.path.exists(filepath):
+        os.remove(filepath)
+
+def test_load(generateLockfile, loadEmptyFile):
     lock = LockFile(generateLockfile)
     lock["project/jeffsPart.dwg"] = "jeff"
-    try:
-        lock.load("./emptyFile")
-        assert len(lock) == 0
-    finally:
-        os.remove("emptyFile")
+    lock.load(loadEmptyFile)
+    assert len(lock) == 0
 
 def test_locks(generateLockfile):
     lock = LockFile(generateLockfile)
@@ -43,10 +45,11 @@ def test_removeLock(generateLockfile):
     del lock["nonExistantLock"] #should not error
     assert len(lock) == 1
     assert not lock["project/jeffs2ndPart.dwg"] is None 
-
+    
 def test_findLock(generateLockfile):
     lock = LockFile(generateLockfile)
     lock["project/jeffsPart.dwg"] = "jeff"
     lock["project/jeffs2ndPart.dwg"] = "bob"
     entry = lock["project/jeffs2ndPart.dwg"]
     assert entry["user"] == "bob"
+    
