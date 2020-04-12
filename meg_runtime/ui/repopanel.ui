@@ -80,6 +80,9 @@
       </layout>
      </item>
      <item>
+      <widget class="QTreeView" name="treeView"/>
+     </item>
+     <item>
       <widget class="QWidget" name="dirViewWidget" native="true"/>
      </item>
     </layout>

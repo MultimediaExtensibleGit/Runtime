@@ -1,5 +1,6 @@
 
 from PyQt5 import QtWidgets, uic
+import os.path
 import pkg_resources
 
 from meg_runtime.config import Config
@@ -18,11 +19,20 @@ class MainMenuPanel(BasePanel):
                                               'downloadButton')
         # TODO: Attach handlers
         self.download_button.clicked.connect(self.download)
+        # Load the repos
+        # TODO: Get this from the GitManager
+        self.tree_widget = self.findChild(QtWidgets.QTreeWidget, 'treeWidget')
+        repos = Config.get('path/repos')
+        repos = [QtWidgets.QTreeWidgetItem([os.path.basename(repo['path'])])
+                 for repo in repos]
+        self.tree_widget.addTopLevelItems(repos)
 
     def download(self):
         """"Download" or clone a project."""
         # Pass control to the manager
         self.manager.open_clone_panel()
 
-
-
+    def reload(self):
+        """Reload the window."""
+        # TODO
+        pass
