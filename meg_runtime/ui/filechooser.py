@@ -10,16 +10,18 @@ class FileChooser(object):
     def __init__(self, tree_view, path, **kwargs):
         """File chooser constructor."""
         super().__init__(**kwargs)
-        self.tree_view = tree_view
+        self._tree_view = tree_view
         model = QtWidgets.QDirModel()
-        self.tree_view.setModel(model)
-        self.tree_view.setRootIndex(model.index(path))
+        self._tree_view.setModel(model)
+        self._tree_view.setRootIndex(model.index(path))
 
-    def get_selected_paths(self):
-        """Return the selected paths in the chooser."""
-        paths = []
-        indexes = self.tree_view.selectedIndexes()
-        for index in indexes:
+    def get_selected_path(self):
+        """Return the selected path in the chooser."""
+        indexes = self._tree_view.selectedIndexes()
+        path = None
+        if len(indexes) > 0:
+            # Build up the selected path
+            index = indexes[0]
             p = [index.data()]
             parent = index.parent()
             while parent.isValid():
@@ -29,5 +31,8 @@ class FileChooser(object):
             # Handle Windows backslash
             if os.name == 'nt':
                 path = '\\'.join(p)
-            paths.append(path)
-        return paths
+        return path
+
+    def set_double_click_handler(self, handler):
+        """Set the double click handler."""
+        self._tree_view.doubleClicked.connect(handler)

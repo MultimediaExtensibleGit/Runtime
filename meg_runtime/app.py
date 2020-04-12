@@ -1,6 +1,7 @@
 """MEG Application Class
 """
 from PyQt5 import QtWidgets
+import pkg_resources
 import sys
 
 from meg_runtime.config import Config
@@ -42,8 +43,8 @@ class App(QtWidgets.QApplication):
     def run(self, **kwargs):
         """Run the application UI"""
         self.on_start()
-        manager = UIManager(**kwargs)
-        manager.show()
+        icon_path = pkg_resources.resource_filename(__name__, 'meg.ico')
+        UIManager.setup(icon_path=icon_path, **kwargs)
 
         # Launch
         ret = self.exec_()

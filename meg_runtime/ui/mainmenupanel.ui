@@ -15,6 +15,21 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>20</number>
+    </property>
+    <property name="leftMargin">
+     <number>10</number>
+    </property>
+    <property name="topMargin">
+     <number>10</number>
+    </property>
+    <property name="rightMargin">
+     <number>10</number>
+    </property>
+    <property name="bottomMargin">
+     <number>10</number>
+    </property>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
@@ -55,26 +70,6 @@
           <string>Project</string>
          </property>
         </column>
-        <column>
-         <property name="text">
-          <string>Timestamp</string>
-         </property>
-        </column>
-        <item>
-         <property name="text">
-          <string>test</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>test</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>test</string>
-         </property>
-        </item>
        </widget>
       </item>
      </layout>

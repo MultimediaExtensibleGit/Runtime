@@ -1,48 +1,79 @@
 
-from PyQt5 import QtWidgets, uic
-import pkg_resources
+from PyQt5 import QtWidgets
 
-from meg_runtime.git import GitManager
 from meg_runtime.config import Config
-from meg_runtime.logger import Logger
 from meg_runtime.ui.basepanel import BasePanel
 from meg_runtime.ui.filechooser import FileChooser
+from meg_runtime.ui.helpers import PanelException
 
 
 class ClonePanel(BasePanel):
     """Setup the cloning panel.
     """
+
+    # The singleton configuration instance
+    __instance = None
+
     def __init__(self, manager, **kwargs):
-        super().__init__(**kwargs)
-        self.manager = manager
+        if ClonePanel.__instance is not None:
+            raise PanelException(self.__class__.__name__ + " is a singleton!")
+        elif manager is None:
+            raise PanelException(self.__class__.__name__
+                                 + " requires a manager!")
+        else:
+            super().__init__(**kwargs)
+            self._manager = manager
 
-        self.ok_button = self.findChild(QtWidgets.QPushButton, 'okButton')
-        self.ok_button.clicked.connect(self.clone)
-        self.back_button = self.findChild(QtWidgets.QPushButton, 'backButton')
-        self.back_button.clicked.connect(self.return_to_main_menu)
+            # Attach handlers
+            self.ok_button = self.findChild(QtWidgets.QPushButton, 'okButton')
+            self.ok_button.clicked.connect(self.clone)
+            self.back_button = self.findChild(QtWidgets.QPushButton,
+                                              'backButton')
+            self.back_button.clicked.connect(self.return_to_main_menu)
+            self.server_text_edit = self.findChild(QtWidgets.QTextEdit,
+                                                   'server')
+            self.username_text_edit = self.findChild(QtWidgets.QTextEdit,
+                                                     'username')
+            self.password_text_edit = self.findChild(QtWidgets.QTextEdit,
+                                                     'password')
 
-        # Add the file viewer/chooser
-        self.tree_view = FileChooser(
-            self.findChild(QtWidgets.QTreeView, 'treeView'),
-            Config.get('path/user')
-        )
+            ClonePanel.__instance = self
+            ClonePanel.load()
 
     def clone(self):
         """Clone the repository."""
-        # Pass control to the manager
-        repo_url = self.findChild(QtWidgets.QTextEdit, 'server').toPlainText()
-        username = self.findChild(QtWidgets.QTextEdit, 'username').toPlainText()
-        password = self.findChild(QtWidgets.QTextEdit, 'password').toPlainText()
-        paths = self.tree_view.get_selected_paths()
+        repo_url = self.server_text_edit.toPlainText()
+        username = self.username_text_edit.toPlainText()
+        password = self.password_text_edit.toPlainText()
+        path = self._tree_view.get_selected_path()
         repo_path = None
-        if len(paths) > 0:
-            repo_path = paths[0]
-        self.manager.clone(username, password, repo_url, repo_path)
+        if path is not None:
+            repo_path = path
+        # Pass control to the manager
+        self._manager.clone(username, password, repo_url, repo_path)
 
     def return_to_main_menu(self):
         """Return to the main menu."""
-        self.manager.return_to_main_menu()
+        self._manager.return_to_main_menu()
 
-    def reload(self):
-        """Reload the panel."""
-        pass
+    @staticmethod
+    def get_instance(manager=None, **kwargs):
+        """Get an instance of the singleton."""
+        if ClonePanel.__instance is None:
+            ClonePanel(manager, **kwargs)
+        return ClonePanel.__instance
+
+    @staticmethod
+    def get_title():
+        """Get the title of this panel."""
+        return 'Clone Panel'
+
+    @staticmethod
+    def load():
+        """Load dynamic elements within the panel."""
+        instance = ClonePanel.get_instance()
+        # Add the file viewer/chooser
+        instance._tree_view = FileChooser(
+            instance.findChild(QtWidgets.QTreeView, 'treeView'),
+            Config.get('path/user')
+        )

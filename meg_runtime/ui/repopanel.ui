@@ -51,13 +51,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="checkChanges">
-         <property name="text">
-          <string>Check For Changes</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QPushButton" name="mainMenu">
          <property name="text">
           <string>Main Menu</string>

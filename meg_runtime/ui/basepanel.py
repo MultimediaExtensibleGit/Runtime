@@ -24,3 +24,13 @@ class BasePanel(QtWidgets.QMainWindow):
             Logger.warning('MEG: BasePanel: {}'.format(e))
             Logger.warning('MEG: BasePanel: Could not load path {}'
                            .format(path))
+
+    @staticmethod
+    def get_instance():
+        """Get the current instance."""
+        pass
+
+    @staticmethod
+    def load():
+        """Load dynamic elements within the panel."""
+        pass
