@@ -78,9 +78,9 @@ class App(QtWidgets.QApplication):
             self._panels = {}
             for panel in App.PANELS:
                 # try:
-                panel_ctor = getattr(ui, panel)
-                panel_obj = panel_ctor()
-                self._panels[panel_obj.get_title()] = panel_obj
+                    panel_ctor = getattr(ui, panel)
+                    panel_obj = panel_ctor()
+                    self._panels[panel_obj.get_title()] = panel_obj
                 # except Exception as e:
                 #     Logger.warning(f'MEG UI: {e}')
                 #     Logger.warning(f'MEG UI: Could not create panel "{panel}"')

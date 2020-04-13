@@ -12,6 +12,8 @@ from meg_runtime.app import App
 class UIManager(QtWidgets.QMainWindow):
     """Main UI manager for the MEG system."""
 
+    DEFAULT_UI_FILE = 'mainwindow.ui'
+
     # The singleton instance
     __instance = None
 
@@ -24,7 +26,7 @@ class UIManager(QtWidgets.QMainWindow):
             super().__init__(**kwargs)
             UIManager.__instance = self
             # Load base panel resource
-            path = pkg_resources.resource_filename(__name__, f'/mainwindow.ui')
+            path = pkg_resources.resource_filename(__name__, UIManager.DEFAULT_UI_FILE)
             try:
                 uic.loadUi(path, self)
             except Exception as e:
@@ -33,8 +35,6 @@ class UIManager(QtWidgets.QMainWindow):
             # Set the open repository
             self._open_repo = None
             self.change_view(App.get_panel('Main Menu'))
-            # Set the default size
-            self.resize(1000, 600)
             # Set the icon
             icon_path = App.get_icon()
             if icon_path is not None:
@@ -84,9 +84,13 @@ class UIManager(QtWidgets.QMainWindow):
             instance.setWindowTitle(f'{App.get_name()} - {panel.get_title()}')
         else:
             instance.setWindowTitle(f'{App.get_name()}')
-        layout = instance.findChild(QtWidgets.QLayout, 'centrallayout')
-        for i in reversed(range(layout.count())): 
-            layout.itemAt(i).widget().setParent(None)
-        layout.addWidget(panel)
+        container = instance.findChild(QtWidgets.QWidget, 'centralwidget')
+        if container is not None:
+            layout = container.layout()
+            if layout is not None:
+                for i in reversed(range(layout.count())): 
+                    layout.itemAt(i).widget().setParent(None)
+                if panel:
+                    layout.addWidget(panel.get_widgets())
 
     # TODO: Add more menu opening/closing methods here
