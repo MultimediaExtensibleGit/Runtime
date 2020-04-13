@@ -80,7 +80,7 @@ class UIManager(QtWidgets.QMainWindow):
         """Change the current panel being viewed. """
         # Reload the panel before changing the view
         instance = UIManager.get_instance()
-        if panel:
+        if panel and panel.get_title():
             instance.setWindowTitle(f'{App.get_name()} - {panel.get_title()}')
         else:
             instance.setWindowTitle(f'{App.get_name()}')

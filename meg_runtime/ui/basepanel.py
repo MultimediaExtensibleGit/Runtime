@@ -20,9 +20,13 @@ class BasePanel(QtWidgets.QMainWindow):
         """Get the widgets of this panel."""
         return self.__widgets
 
+    def get_name(self):
+        """Get the name of this panel."""
+        return self.__class__.__name__
+
     def get_title(self):
         """Get the title of this panel."""
-        return self.__class__.__name__
+        return ''
 
     def on_load(self):
         """Load dynamic elements within the panel."""

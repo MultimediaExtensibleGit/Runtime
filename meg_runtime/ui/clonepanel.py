@@ -26,6 +26,10 @@ class ClonePanel(BasePanel):
         # Pass control to the manager
         UIManager.clone(username, password, repo_url, repo_path)
 
+    def get_title(self):
+        """Get the title of this panel."""
+        return 'Clone'
+
     def on_load(self):
         """Load dynamic elements within the panel."""
         # Attach handlers
