@@ -6,13 +6,20 @@ import sys
 
 from meg_runtime.config import Config
 from meg_runtime.plugins import PluginManager
-from meg_runtime.ui import UIManager
+from meg_runtime.ui import UIManager, ClonePanel, MainMenuPanel, RepoPanel
 from meg_runtime.logger import Logger
 
 
 # MEG client application
 class App(QtWidgets.QApplication):
     """Multimedia Extensible Git (MEG) Client Application"""
+
+    PANELS = [
+        ClonePanel,
+        MainMenuPanel,
+        RepoPanel,
+    ]
+    APP_NAME = "Multimedia Extensible Git"
 
     # Constructor
     def __init__(self):

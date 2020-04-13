@@ -5,9 +5,6 @@ from PyQt5 import QtWidgets, QtGui
 from meg_runtime.config import Config
 from meg_runtime.logger import Logger
 from meg_runtime.git import GitManager, GitRepository
-from meg_runtime.ui.mainmenupanel import MainMenuPanel
-from meg_runtime.ui.clonepanel import ClonePanel
-from meg_runtime.ui.repopanel import RepoPanel
 
 
 class UIManager(QtWidgets.QStackedWidget):
@@ -16,14 +13,7 @@ class UIManager(QtWidgets.QStackedWidget):
     # The singleton instance
     __instance = None
 
-    PANELS = [
-        ClonePanel,
-        MainMenuPanel,
-        RepoPanel,
-    ]
-    APP_NAME = "MEG"
-
-    def __init__(self, icon_path=None, **kwargs):
+    def __init__(self, panels=None, icon_path=None, **kwargs):
         """UI manager constructor."""
         if UIManager.__instance is not None:
             # Except if another instance is created
@@ -33,9 +23,10 @@ class UIManager(QtWidgets.QStackedWidget):
             UIManager.__instance = self
             # Set the open repository
             self._open_repo = None
-            for panel in self.PANELS:
-                self.addWidget(panel.get_instance(UIManager))
-            self.change_view(MainMenuPanel)
+            if panels:
+                for panel in panels:
+                    self.addWidget(panel.get_title(), panel)
+            self.change_view('Main Menu')
             # Set the default size
             self.resize(1000, 600)
             # Set the icon
@@ -59,7 +50,7 @@ class UIManager(QtWidgets.QStackedWidget):
     def open_clone_panel():
         """"Download" or clone a project."""
         # TODO
-        UIManager.change_view(ClonePanel)
+        UIManager.change_view('Clone Panel')
 
     @staticmethod
     def clone(username, password, repo_url, repo_path):
@@ -71,8 +62,8 @@ class UIManager(QtWidgets.QStackedWidget):
         # Set the config
         Config.set('path/repos', repos)
         Config.save()
-        RepoPanel.set_repo(repo_url, repo_path, repo)
-        UIManager.change_view(RepoPanel)
+        RepoPanel(repo_url, repo_path, repo)
+        UIManager.change_view('Repo Panel')
 
     @staticmethod
     def open_repo(repo_url, repo_path):
@@ -83,13 +74,12 @@ class UIManager(QtWidgets.QStackedWidget):
             UIManager.change_view(RepoPanel)
         except Exception as e:
             # TODO: add a popup
-            Logger.warning('MEG UIManager: Could not load repo in '
-                           f'"{repo_path}"')
+            Logger.warning(f'MEG UIManager: Could not load repo in "{repo_path}"')
 
     @staticmethod
     def return_to_main_menu():
         """Return to the main menu screen"""
-        UIManager.change_view(MainMenuPanel)
+        UIManager.change_view('Main Menu')
 
     @staticmethod
     def get_changes(repo):
