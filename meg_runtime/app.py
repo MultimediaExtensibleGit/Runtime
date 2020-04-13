@@ -1,13 +1,13 @@
 """MEG Application Class
 """
-from PyQt5 import QtWidgets
-import pkg_resources
-import sys
 
+import sys
+import pkg_resources
+from PyQt5 import QtWidgets
 from meg_runtime.config import Config
 from meg_runtime.plugins import PluginManager
-from meg_runtime.ui import UIManager, ClonePanel, MainMenuPanel, RepoPanel
 from meg_runtime.logger import Logger
+from meg_runtime import ui
 
 
 # MEG client application
@@ -15,11 +15,10 @@ class App(QtWidgets.QApplication):
     """Multimedia Extensible Git (MEG) Client Application"""
 
     PANELS = [
-        ClonePanel,
-        MainMenuPanel,
-        RepoPanel,
+        'ClonePanel',
+        'MainMenuPanel',
+        'RepoPanel',
     ]
-    APP_NAME = "Multimedia Extensible Git"
 
     # Constructor
     def __init__(self):
@@ -50,8 +49,12 @@ class App(QtWidgets.QApplication):
     def run(self, **kwargs):
         """Run the application UI"""
         self.on_start()
+        panels = []
+        for panel in App.PANELS:
+            panel_ctor = getattr(ui, panel)
+            panels.append(panel_ctor())
         icon_path = pkg_resources.resource_filename(__name__, 'meg.ico')
-        UIManager.setup(icon_path=icon_path, **kwargs)
+        ui.UIManager.setup(panels=panels, icon_path=icon_path, **kwargs)
 
         # Launch
         ret = self.exec_()

@@ -37,7 +37,7 @@ class ClonePanel(BasePanel):
         self.ok_button = instance.findChild(QtWidgets.QPushButton, 'okButton')
         self.ok_button.clicked.connect(self.clone)
         self.back_button = instance.findChild(QtWidgets.QPushButton, 'backButton')
-        self.back_button.clicked.connect(self.return_to_main_menu)
+        self.back_button.clicked.connect(UIManager.return_to_main_menu)
         self.server_text_edit = instance.findChild(QtWidgets.QTextEdit, 'server')
         self.username_text_edit = instance.findChild(QtWidgets.QTextEdit, 'username')
         self.password_text_edit = instance.findChild(QtWidgets.QTextEdit, 'password')

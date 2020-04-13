@@ -10,6 +10,8 @@ from meg_runtime.git import GitManager, GitRepository
 class UIManager(QtWidgets.QStackedWidget):
     """Main UI manager for the MEG system."""
 
+    APP_NAME = "Multimedia Extensible Git"
+
     # The singleton instance
     __instance = None
 
@@ -96,9 +98,8 @@ class UIManager(QtWidgets.QStackedWidget):
     def change_view(panel):
         """Change the current panel being viewed. """
         # Reload the panel before changing the view
-        panel.load()
         instance = UIManager.get_instance()
-        instance.setWindowTitle(f'{UIManager.APP_NAME} - {panel.get_title()}')
-        instance.setCurrentIndex(UIManager.PANELS.index(panel))
+        instance.setWindowTitle(f'{UIManager.APP_NAME} - {panel}')
+        instance.setCurrentIndex(UIManager.index(panel))
 
     # TODO: Add more menu opening/closing methods here
