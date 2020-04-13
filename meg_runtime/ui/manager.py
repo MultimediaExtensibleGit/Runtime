@@ -1,21 +1,21 @@
 """MEG UI Manager
 """
-from PyQt5 import QtWidgets, QtGui
 
+import pkg_resources
+from PyQt5 import QtWidgets, QtGui, uic
 from meg_runtime.config import Config
 from meg_runtime.logger import Logger
 from meg_runtime.git import GitManager, GitRepository
+from meg_runtime.app import App
 
 
-class UIManager(QtWidgets.QStackedWidget):
+class UIManager(QtWidgets.QMainWindow):
     """Main UI manager for the MEG system."""
-
-    APP_NAME = "Multimedia Extensible Git"
 
     # The singleton instance
     __instance = None
 
-    def __init__(self, panels=None, icon_path=None, **kwargs):
+    def __init__(self, **kwargs):
         """UI manager constructor."""
         if UIManager.__instance is not None:
             # Except if another instance is created
@@ -23,15 +23,20 @@ class UIManager(QtWidgets.QStackedWidget):
         else:
             super().__init__(**kwargs)
             UIManager.__instance = self
+            # Load base panel resource
+            path = pkg_resources.resource_filename(__name__, f'/mainwindow.ui')
+            try:
+                uic.loadUi(path, self)
+            except Exception as e:
+                Logger.warning(f'MEG: BasePanel: {e}')
+                Logger.warning(f'MEG: BasePanel: Could not load path {path}')
             # Set the open repository
             self._open_repo = None
-            if panels:
-                for panel in panels:
-                    self.addWidget(panel.get_title(), panel)
-            self.change_view('Main Menu')
+            self.change_view(App.get_panel('Main Menu'))
             # Set the default size
             self.resize(1000, 600)
             # Set the icon
+            icon_path = App.get_icon()
             if icon_path is not None:
                 self.setWindowIcon(QtGui.QIcon(icon_path))
 
@@ -52,36 +57,12 @@ class UIManager(QtWidgets.QStackedWidget):
     def open_clone_panel():
         """"Download" or clone a project."""
         # TODO
-        UIManager.change_view('Clone Panel')
-
-    @staticmethod
-    def clone(username, password, repo_url, repo_path):
-        """Clone a repository."""
-        # TODO: Handle username + password
-        repo = GitManager.clone(repo_url, repo_path)
-        repos = Config.get('path/repos', defaultValue=[])
-        repos.append({'url': repo_url, 'path': repo_path})
-        # Set the config
-        Config.set('path/repos', repos)
-        Config.save()
-        RepoPanel(repo_url, repo_path, repo)
-        UIManager.change_view('Repo Panel')
-
-    @staticmethod
-    def open_repo(repo_url, repo_path):
-        """Open a specific repo."""
-        try:
-            repo = GitRepository(repo_path)
-            RepoPanel.set_repo(repo_url, repo_path, repo)
-            UIManager.change_view(RepoPanel)
-        except Exception as e:
-            # TODO: add a popup
-            Logger.warning(f'MEG UIManager: Could not load repo in "{repo_path}"')
+        UIManager.change_view(App.get_panel('Clone Panel'))
 
     @staticmethod
     def return_to_main_menu():
         """Return to the main menu screen"""
-        UIManager.change_view('Main Menu')
+        UIManager.change_view(App.get_panel('Main Menu'))
 
     @staticmethod
     def get_changes(repo):
@@ -99,7 +80,13 @@ class UIManager(QtWidgets.QStackedWidget):
         """Change the current panel being viewed. """
         # Reload the panel before changing the view
         instance = UIManager.get_instance()
-        instance.setWindowTitle(f'{UIManager.APP_NAME} - {panel}')
-        instance.setCurrentIndex(UIManager.index(panel))
+        if panel:
+            instance.setWindowTitle(f'{App.get_name()} - {panel.get_title()}')
+        else:
+            instance.setWindowTitle(f'{App.get_name()}')
+        layout = instance.findChild(QtWidgets.QLayout, 'centrallayout')
+        for i in reversed(range(layout.count())): 
+            layout.itemAt(i).widget().setParent(None)
+        layout.addWidget(panel)
 
     # TODO: Add more menu opening/closing methods here

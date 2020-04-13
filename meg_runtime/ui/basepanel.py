@@ -34,7 +34,7 @@ class BasePanel(QtWidgets.QMainWindow):
         path = pkg_resources.resource_filename(__name__, f'/{self.__class__.__name__.lower()}.ui')
         if not self.__class__.__widgets:
             try:
-                self.__class__.__widgets = uic.loadUi(path, self)
+                self.__class__.__widgets = uic.loadUi(path)
             except Exception as e:
                 Logger.warning(f'MEG: BasePanel: {e}')
                 Logger.warning(f'MEG: BasePanel: Could not load path {path}')

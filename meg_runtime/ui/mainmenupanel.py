@@ -24,7 +24,7 @@ class MainMenuPanel(BasePanel):
         instance = self.get_widgets()
         self.download_button = instance.findChild(QtWidgets.QPushButton, 'downloadButton')
         # TODO: Attach handlers
-        self.download_button.clicked.connect(UIManager.open_clone_panel())
+        self.download_button.clicked.connect(UIManager.open_clone_panel)
         self._tree_widget = instance.findChild(QtWidgets.QTreeWidget, 'treeWidget')
         self._tree_widget.itemDoubleClicked.connect(self._handle_double_click)
         # Load the repos

@@ -15,10 +15,10 @@ class RepoPanel(BasePanel):
 
     def __init__(self, repo_url=None, repo_path=None, repo=None,**kwargs):
         """RepoPanel constructor."""
-        super().__init__(**kwargs)
         self._repo_url = repo_url
         self._repo_path = repo_path
         self._repo = repo
+        super().__init__(**kwargs)
 
     def handle_double_clicked(self, item):
         """Handle double clicking of a file (open it with another program)."""
@@ -41,7 +41,7 @@ class RepoPanel(BasePanel):
     def get_title(self):
         """Get the title of this panel."""
         instance = self.get_widgets()
-        return instance.title
+        return self.title
 
     def load(self):
         """Load dynamic elements within the panel."""
