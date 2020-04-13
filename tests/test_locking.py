@@ -14,7 +14,7 @@ def generateLocking():
     lock.save()
     LockingManager._LockingManager__instance = None
     LockingManager()
-    yield len(lock)
+    yield (len(lock), mock.MagicMock())
     os.remove(LockingManager.LOCKFILE_DIR + LockingManager.LOCKFILE_NAME)
     os.rmdir(LockingManager.LOCKFILE_DIR)
 
@@ -26,13 +26,13 @@ def test_findLock(generateLocking):
     assert LockingManager.findLock("IOEFJIOFIJEFIOEFJIOEFJIKOEFJOIKEFKOPEFOPKEF") is None
 
 def test_addLock(generateLocking):
-    assert not LockingManager.addLock("project/jeffs2ndPart.dwg", "bob") #Lock belonging to user else already exists
-    assert not LockingManager.addLock("project/jeffsPart.dwg", "bob") #Lock belonging to someone else already exists
-    assert LockingManager.addLock("morethings/aThing.svg", "bob")
+    assert not LockingManager.addLock(generateLocking[1], "project/jeffs2ndPart.dwg", "bob") #Lock belonging to user else already exists
+    assert not LockingManager.addLock(generateLocking[1], "project/jeffsPart.dwg", "bob") #Lock belonging to someone else already exists
+    assert LockingManager.addLock(generateLocking[1], "morethings/aThing.svg", "bob")
     assert LockingManager.findLock("morethings/aThing.svg")["user"] == "bob"
 
 def test_removeLock(generateLocking):
-    assert LockingManager.removeLock("project/jeffsPart.dwg", "bob") == False #Lock belonging to someone else
-    assert LockingManager.removeLock("src/other.txt", "bob") == True
-    assert len(LockingManager.locks()) == generateLocking - 1
+    assert LockingManager.removeLock(generateLocking[1], "project/jeffsPart.dwg", "bob") == False #Lock belonging to someone else
+    assert LockingManager.removeLock(generateLocking[1], "src/other.txt", "bob")
+    assert len(LockingManager.locks()) == generateLocking[0] - 1
 

@@ -1,6 +1,8 @@
 """Git repository"""
 
-from pygit2 import init_repository, clone_repository, Repository
+from pygit2 import init_repository, clone_repository, Repository, GitError
+from meg_runtime.logger import Logger
+from meg_runtime.config import Config
 
 
 # Git exception
@@ -49,3 +51,24 @@ class GitRepository(Repository):
     # TODO: Pull the remote repository
     def pull(self, remote_name='origin'):
         pass
+
+    def commit_push(self, tree, message, remote_name='origin'):
+        """Commits and pushes staged changes in the tree
+        TODO: Ensure that the config keys are correct
+        TODO: Test
+
+        Args:
+            tree (Oid): Oid id created from repositiory index (ex: repo.index.write_tree()) containing the tracked file changes (proably)
+            message (string): commit message
+            remote_name (string, optional): name of the remote to push to
+        """
+        author = pygit2.Signature(Config.get('user/name'), Config.get('user/email'))
+        #Create commit on current branch, parent is current commit, author and commiter is the user
+        oid = self.create_commit(self.head.name, author, author, message, tree, [self.head.get_object().hex])
+        creds = pygit2.UserPass(Config.get('user/username'), Config.get('user/password'))
+        remote = self.remotes[remote_name]
+        remote.credentials = creds
+        try:
+            remote.push([self.head.name], callbacks=pygit2.RemoteCallbacks(credentials=creds))
+        except GitError as e:
+            Logger.warning("MEG Git Repository: Failed to push commit")

@@ -10,6 +10,7 @@ Working directory should be changed by the git module
 import os
 from meg_runtime.locking.lockFile import LockFile
 from meg_runtime.logger import Logger
+from meg_runtime.git import GitManager
 
 
 class LockingManager:
@@ -22,10 +23,6 @@ class LockingManager:
     __instance = None
 
     def __init__(self):
-        """
-        Args:
-            permissionsManager (PermissionsManager): the active permissions manager
-        """
         if LockingManager.__instance is not None:
             raise Exception("Trying to create a second instance of LockingManager, which is a singleton")
         else:
@@ -33,9 +30,10 @@ class LockingManager:
             LockingManager.__instance._lockFile = LockFile(LockingManager.LOCKFILE_DIR + LockingManager.LOCKFILE_NAME)
 
     @staticmethod
-    def addLock(filepath, username):
+    def addLock(repo, filepath, username):
         """Sync the repo, adds the lock, sync the repo
         Args:
+            repo (GitRepository): currently open repository that the file belongs to
             filepath (string): path to the file to lock
             username (string): username of cuerrent user
         Returns:
@@ -43,18 +41,19 @@ class LockingManager:
         """
         if LockingManager.__instance is None:
             LockingManager()
-        LockingManager.__instance.updateLocks()
+        LockingManager.__instance.pullLocks(repo)
         if filepath in LockingManager.__instance._lockFile:
             return False
         else:
             LockingManager.__instance._lockFile[filepath] = username
-            LockingManager.__instance.updateLocks()
+            LockingManager.__instance.pushLocks(repo)
             return True
         
     @staticmethod
-    def removeLock(filepath, username):
+    def removeLock(repo, filepath, username):
         """Sync the repo, remove a lock from a file, and sync again
         Args:
+            repo (GitRepository): currently open repository that the file belongs to
             filepath (string): path to file to unlock
             username (string): username of current user
         Returns:
@@ -62,7 +61,7 @@ class LockingManager:
         """
         if LockingManager.__instance is None:
             LockingManager()
-        LockingManager.__instance.updateLocks()
+        LockingManager.__instance.pullLocks(repo)
         lock = LockingManager.__instance._lockFile[filepath]
         if(lock is None):
             return True
@@ -70,7 +69,7 @@ class LockingManager:
             del LockingManager.__instance._lockFile[filepath] 
         else:
             return False
-        LockingManager.__instance.updateLocks()
+        LockingManager.__instance.pushLocks(repo)
         return True
         
     @staticmethod
@@ -84,26 +83,60 @@ class LockingManager:
         """
         if LockingManager.__instance is None:
             LockingManager()
+        LockingManager.__instance._lockFile.load()
         return LockingManager.__instance._lockFile[filepath]
 
     @staticmethod
     def locks():
+        """Get the LockFile object
+        """
+        LockingManager.__instance._lockFile.load()
         return LockingManager.__instance._lockFile
 
     @staticmethod
-    def updateLocks():
-        """Syncronizes the local locks with the remote locks, manually merge local data with remote
-        """
-        #TODO Sync with repo, as described below
-        """
-        https://www.quora.com/How-can-I-pull-one-file-from-a-Git-repository-instead-of-the-entire-project/answer/Aarti-Dwivedi
-        fetch
-        checkout from latest commit lock and permissions files
-        create new LockFile object off of it and merge with current object
-        save date
-        if lockfile has changed stage, commit, and push it
+    def pullLocks(repo):
+        """Pulls the lock file from remote and loads it
+        TODO: Test
+
+        Args:
+            repo(GitRepository): currently open repository that the file belongs to
         """
         if LockingManager.__instance is None:
             LockingManager()
-        LockingManager.__instance._lockFile.save()
+        if repo is None:
+            Logger.warning("MEG Locking: Could not open repositiory")
+            return False
+        try:
+            #Fetch current version
+            repo.fetch_all()
+            fetch_head = repo.lookup_reference('FETCH_HEAD')
+            if fetch_head is not None:
+                repo.head.set_target(fetch_head.target)
+            #Checkout current version of lockfile
+            repo.checkout_head(paths=['*/' + LockingManager.LOCKFILE_DIR + LockingManager.LOCKFILE_NAME])
+        except Exception as e:
+            Logger.warning(f'MEG Locking: {e}')
+            Logger.warning(f'MEG Locking: Could not update locking information')
+        #Should be called wether or not the update was sucessful
         LockingManager.__instance._lockFile.load()
+
+    @staticmethod
+    def pushLocks(repo):
+        """Saves the lock settigs to the remote repository
+        TODO: Test
+
+        Args:
+            repo(GitRepository): currently open repository that the file belongs to
+        """
+        if LockingManager.__instance is None:
+            LockingManager()
+        #Save current lockfile
+        LockingManager.__instance._lockFile.save()
+        #Stage lockfile changes
+        repo.index.add(LockingManager.LOCKFILE_DIR + LockingManager.LOCKFILE_NAME)
+        repo.index.write()
+        tree = repo.index.write_tree()
+        #Commit and push
+        repo.commit_push(tree, "MEG LOCKFILE UPDATE")
+
+
