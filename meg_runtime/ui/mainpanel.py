@@ -8,18 +8,14 @@ from meg_runtime.ui.manager import UIManager
 from meg_runtime.ui.helpers import PanelException
 
 
-class MainMenuPanel(BasePanel):
+class MainPanel(BasePanel):
     """Setup a list of cloned repos."""
 
     def __init__(self, **kwargs):
-        """MainMenuPanel constructor."""
+        """MainPanel constructor."""
         super().__init__(**kwargs)
 
-    def get_title(self):
-        """Get the title of this panel."""
-        return 'Main Menu'
-
-    def load(self):
+    def on_load(self):
         """Load dynamic elements within the panel."""
         instance = self.get_widgets()
         self.download_button = instance.findChild(QtWidgets.QPushButton, 'downloadButton')

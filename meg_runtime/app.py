@@ -17,8 +17,8 @@ class App(QtWidgets.QApplication):
     APP_NAME = 'Multimedia Extensible Git'
     APP_ICON_PATH = 'meg.ico'
     PANELS = [
+        'MainPanel',
         'ClonePanel',
-        'MainMenuPanel',
         'RepoPanel',
     ]
 

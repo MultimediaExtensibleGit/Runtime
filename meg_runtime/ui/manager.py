@@ -34,7 +34,7 @@ class UIManager(QtWidgets.QMainWindow):
                 Logger.warning(f'MEG: BasePanel: Could not load path {path}')
             # Set the open repository
             self._open_repo = None
-            self.change_view(App.get_panel('Main Menu'))
+            self.change_view(App.get_panel('MainPanel'))
             # Set the icon
             icon_path = App.get_icon()
             if icon_path is not None:
@@ -57,12 +57,12 @@ class UIManager(QtWidgets.QMainWindow):
     def open_clone_panel():
         """"Download" or clone a project."""
         # TODO
-        UIManager.change_view(App.get_panel('Clone Panel'))
+        UIManager.change_view(App.get_panel('ClonePanel'))
 
     @staticmethod
-    def return_to_main_menu():
-        """Return to the main menu screen"""
-        UIManager.change_view(App.get_panel('Main Menu'))
+    def return_to_main():
+        """Return to the main panel"""
+        UIManager.change_view(App.get_panel('MainPanel'))
 
     @staticmethod
     def get_changes(repo):
@@ -86,11 +86,14 @@ class UIManager(QtWidgets.QMainWindow):
             instance.setWindowTitle(f'{App.get_name()}')
         container = instance.findChild(QtWidgets.QWidget, 'centralwidget')
         if container is not None:
+            widget = None if not panel else panel.get_widgets()
             layout = container.layout()
             if layout is not None:
                 for i in reversed(range(layout.count())): 
                     layout.itemAt(i).widget().setParent(None)
-                if panel:
-                    layout.addWidget(panel.get_widgets())
+                if widget:
+                    layout.addWidget(widget)
+            if widget:
+                widget.setParent(container)
 
     # TODO: Add more menu opening/closing methods here

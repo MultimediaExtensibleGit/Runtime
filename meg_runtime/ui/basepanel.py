@@ -14,7 +14,7 @@ class BasePanel(QtWidgets.QMainWindow):
         """UI manager constructor."""
         super().__init__(**kwargs)
         self._load_ui_file()
-        self.load()
+        self.on_load()
 
     def get_widgets(self):
         """Get the widgets of this panel."""
@@ -22,9 +22,9 @@ class BasePanel(QtWidgets.QMainWindow):
 
     def get_title(self):
         """Get the title of this panel."""
-        return 'Base Panel'
+        return self.__class__.__name__
 
-    def load(self):
+    def on_load(self):
         """Load dynamic elements within the panel."""
         pass
 

@@ -26,18 +26,14 @@ class ClonePanel(BasePanel):
         # Pass control to the manager
         UIManager.clone(username, password, repo_url, repo_path)
 
-    def get_title(self):
-        """Get the title of this panel."""
-        return 'Clone Panel'
-
-    def load(self):
+    def on_load(self):
         """Load dynamic elements within the panel."""
         # Attach handlers
         instance = self.get_widgets()
         self.ok_button = instance.findChild(QtWidgets.QPushButton, 'okButton')
         self.ok_button.clicked.connect(self.clone)
         self.back_button = instance.findChild(QtWidgets.QPushButton, 'backButton')
-        self.back_button.clicked.connect(UIManager.return_to_main_menu)
+        self.back_button.clicked.connect(UIManager.return_to_main)
         self.server_text_edit = instance.findChild(QtWidgets.QTextEdit, 'server')
         self.username_text_edit = instance.findChild(QtWidgets.QTextEdit, 'username')
         self.password_text_edit = instance.findChild(QtWidgets.QTextEdit, 'password')

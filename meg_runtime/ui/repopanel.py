@@ -43,11 +43,11 @@ class RepoPanel(BasePanel):
         instance = self.get_widgets()
         return self.title
 
-    def load(self):
+    def on_load(self):
         """Load dynamic elements within the panel."""
         instance = self.get_widgets()
-        self._main_menu_button = instance.findChild(QtWidgets.QPushButton, 'mainMenu')
-        self._main_menu_button.clicked.connect(UIManager.return_to_main_menu)
+        self._main_button = instance.findChild(QtWidgets.QPushButton, 'mainMenu')
+        self._main_button.clicked.connect(UIManager.return_to_main)
         self._get_changes_button = instance.findChild(QtWidgets.QPushButton, 'getChanges')
         self._get_changes_button.clicked.connect(UIManager.get_changes)
         self._send_changes_button = instance.findChild(QtWidgets.QPushButton, 'sendChanges')
