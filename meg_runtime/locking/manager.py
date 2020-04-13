@@ -10,7 +10,6 @@ Working directory should be changed by the git module
 import os
 from meg_runtime.locking.lockFile import LockFile
 from meg_runtime.logger import Logger
-from meg_runtime.git import GitManager
 
 
 class LockingManager:
