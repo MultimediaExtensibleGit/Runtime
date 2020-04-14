@@ -46,6 +46,14 @@ class PermissionsManager(dict):
         if user not in self['roles']['default']:
             self['roles']['default'].append(user)
 
+    def get_users(self):
+        """Returns a list of all users and their roles
+        TODO
+        Returns:
+            (list((username, list(roles)))): List of truples containing usernames and a list of their roles
+        """
+        pass
+
     def can_lock(self):
         """Return True if the current user can lock a specific path"""
         return self._general_check('roles_add_locks', 'users_add_locks')
@@ -86,6 +94,7 @@ class PermissionsManager(dict):
     def add_role_permission(self, role, key, file=None):
         """Add a permission to a role
         Defaults to general permission, if file is given, permission will only apply to that file
+        TODO
 
         Args:
             role (string): role name

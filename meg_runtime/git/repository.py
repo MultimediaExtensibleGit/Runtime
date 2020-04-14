@@ -54,14 +54,20 @@ class GitRepository(Repository):
             remote.fetch()
 
     def setPermissionsUser(self, username):
+        """Reload permissions and set user
+        """
         self.permissions = PermissionsManager(Config.get("path/permissions"), username)
 
     def pullPermissions(self, username):
+        """Pull down current version of permissions file
+        """
         if not self.pullPath([Config.get("path/permissions")]):
             Logger.warning("MEG repository: Failed to download permission file")
         self.permissions = PermissionsManager(Config.get("path/permissions"), username)
 
     def pushPermissions(self):
+        """Save permissions file and push to repo
+        """
         #Store permissions in file
         self.permissions.save()
         #stage permissions file
@@ -88,7 +94,7 @@ class GitRepository(Repository):
 
     def pullPaths(self, paths):
         """Checkout only the files in the list of paths
-        ##TODO: NOT WOKRING, WILL THROW AWAY CHANGES IN THE WORKING DIRECTORY
+
         Args:
             paths (list(stirng)): paths to checkout
         Returns:
