@@ -105,16 +105,21 @@ class LockingManager:
         if repo is None:
             Logger.warning("MEG Locking: Could not open repositiory")
             return False
-        try:
+        """try:
             #Fetch current version
             repo.fetch_all()
             fetch_head = repo.lookup_reference('FETCH_HEAD')
             if fetch_head is not None:
+                repo.checkout_tree(repo.get(fetch_head.target), paths=[".meg/locks.json"])
+                #This v is working for some reason, but not that ^
+                #repo.checkout_tree(repo.get(fetch_head.target), paths=["README.md"])
                 repo.head.set_target(fetch_head.target)
                 #Checkout current version of lockfile           
-                repo.checkout_head(paths=[LockingManager.LOCKFILE_DIR + LockingManager.LOCKFILE_NAME])
+                repo.checkout_head()
         except Exception as e:
             Logger.warning(f'MEG Locking: {e}')
+            Logger.warning(f'MEG Locking: Could not update locking information')"""
+        if not repo.pull(fail_on_conflict=True):
             Logger.warning(f'MEG Locking: Could not update locking information')
         #Should be called wether or not the update was sucessful
         LockingManager.__instance._lockFile.load()

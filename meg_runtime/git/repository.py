@@ -65,7 +65,7 @@ class GitRepository(Repository):
             self.index.add(entry)
         self.index.write()
 
-    def pull(self, remote_name='origin'):
+    def pull(self, remote_name='origin', fail_on_conflict=False):
         """Pull and merge
         Merge is done fully automaticly, currently uses 'ours' on conflicts
         TODO: Preform a proper merge with the locking used to resolve conflicts
@@ -102,12 +102,15 @@ class GitRepository(Repository):
             self.merge(remoteId)
             #conflit (IndexEntry(ancester, ours, theirs))
             for conflit in self.index.conflicts:'''
-            print("merge")
+            if fail_on_conflict:
+                self.state_cleanup()
+                return False
             self.merge_commits(self.head.peel(), self.lookup_reference(headBranch.upstream_name).peel(), favor='ours')
             author = self.default_signature
             tree = self.index.write_tree()
             commit = self.create_commit('HEAD', author, author, "MEG MERGE", tree, [self.head.target, remoteId])
         self.state_cleanup()
+        return True
         
     def push(self, remote_name='origin', username=None, password=None):
         """Pushes current commits
