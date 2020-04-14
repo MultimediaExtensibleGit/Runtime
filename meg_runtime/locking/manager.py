@@ -95,7 +95,6 @@ class LockingManager:
     @staticmethod
     def pullLocks(repo):
         """Pulls the lock file from remote and loads it
-        TODO: Test
 
         Args:
             repo(GitRepository): currently open repository that the file belongs to
@@ -105,29 +104,24 @@ class LockingManager:
         if repo is None:
             Logger.warning("MEG Locking: Could not open repositiory")
             return False
-        """try:
+         
+        try:
             #Fetch current version
             repo.fetch_all()
             fetch_head = repo.lookup_reference('FETCH_HEAD')
             if fetch_head is not None:
-                repo.checkout_tree(repo.get(fetch_head.target), paths=[".meg/locks.json"])
-                #This v is working for some reason, but not that ^
-                #repo.checkout_tree(repo.get(fetch_head.target), paths=["README.md"])
+                repo.checkout_tree(repo.get(fetch_head.target), paths=[LockingManager.LOCKFILE_DIR[:-1] + '/' + LockingManager.LOCKFILE_NAME])
                 repo.head.set_target(fetch_head.target)
                 #Checkout current version of lockfile           
                 repo.checkout_head()
         except Exception as e:
             Logger.warning(f'MEG Locking: {e}')
-            Logger.warning(f'MEG Locking: Could not update locking information')"""
-        if not repo.pull(fail_on_conflict=True):
             Logger.warning(f'MEG Locking: Could not update locking information')
-        #Should be called wether or not the update was sucessful
         LockingManager.__instance._lockFile.load()
 
     @staticmethod
     def pushLocks(repo):
         """Saves the lock settigs to the remote repository
-        TODO: Test
 
         Args:
             repo(GitRepository): currently open repository that the file belongs to
@@ -138,11 +132,10 @@ class LockingManager:
         LockingManager.__instance._lockFile.save()
         #Stage lockfile changes
         #Must be relitive to worktree root
-        repo.index.add(".meg/locks.json")
+        repo.index.add(LockingManager.LOCKFILE_DIR[:-1] + '/' + LockingManager.LOCKFILE_NAME)
         repo.index.write()
         tree = repo.index.write_tree()
         #Commit and push
-        print("LOCKFILE PUSH")
         repo.commit_push(tree, "MEG LOCKFILE UPDATE")
 
 

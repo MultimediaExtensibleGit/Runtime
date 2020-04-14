@@ -114,7 +114,6 @@ class GitRepository(Repository):
         
     def push(self, remote_name='origin', username=None, password=None):
         """Pushes current commits
-        TODO: Ensure that the config keys are correct
         4/13/20 21 - seems to be working
 
         Args:
