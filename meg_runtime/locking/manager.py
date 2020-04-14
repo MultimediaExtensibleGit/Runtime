@@ -40,6 +40,9 @@ class LockingManager:
         """
         if LockingManager.__instance is None:
             LockingManager()
+        repo.setPermissionsUser(username)
+        if not repo.permissions.can_lock():
+            return False
         LockingManager.__instance.pullLocks(repo)
         if filepath in LockingManager.__instance._lockFile:
             return False
@@ -62,9 +65,10 @@ class LockingManager:
             LockingManager()
         LockingManager.__instance.pullLocks(repo)
         lock = LockingManager.__instance._lockFile[filepath]
+        repo.setPermissionsUser(username)
         if(lock is None):
             return True
-        elif(lock["user"] == username or False): #TODO check that user role can remove other user's locks
+        elif(lock["user"] == username or repo.permissions.can_remove_lock()):
             del LockingManager.__instance._lockFile[filepath] 
         else:
             return False
@@ -105,18 +109,10 @@ class LockingManager:
             Logger.warning("MEG Locking: Could not open repositiory")
             return False
          
-        try:
-            #Fetch current version
-            repo.fetch_all()
-            fetch_head = repo.lookup_reference('FETCH_HEAD')
-            if fetch_head is not None:
-                repo.checkout_tree(repo.get(fetch_head.target), paths=[LockingManager.LOCKFILE_DIR[:-1] + '/' + LockingManager.LOCKFILE_NAME])
-                repo.head.set_target(fetch_head.target)
-                #Checkout current version of lockfile           
-                repo.checkout_head()
-        except Exception as e:
-            Logger.warning(f'MEG Locking: {e}')
-            Logger.warning(f'MEG Locking: Could not update locking information')
+        #Fetch current version
+        if not repo.pullPaths([LockingManager.LOCKFILE_DIR[:-1] + '/' + LockingManager.LOCKFILE_NAME]):
+            Logger.warning("MEG Locking: Could not download newest lockfile")
+
         LockingManager.__instance._lockFile.load()
 
     @staticmethod

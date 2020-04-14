@@ -32,7 +32,9 @@ def test_addLock(generateLocking):
     assert LockingManager.findLock("morethings/aThing.svg")["user"] == "bob"
 
 def test_removeLock(generateLocking):
-    assert LockingManager.removeLock(generateLocking[1], "project/jeffsPart.dwg", "bob") == False #Lock belonging to someone else
+    generateLocking[1].permissions = mock.MagicMock()
+    generateLocking[1].permissions.can_remove_lock.return_value = False
+    assert not LockingManager.removeLock(generateLocking[1], "project/jeffsPart.dwg", "bob") #Lock belonging to someone else
     assert LockingManager.removeLock(generateLocking[1], "src/other.txt", "bob")
     assert len(LockingManager.locks()) == generateLocking[0] - 1
 

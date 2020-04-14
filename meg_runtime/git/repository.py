@@ -5,6 +5,8 @@ from pygit2 import init_repository, clone_repository, Repository, GitError
 from meg_runtime.logger import Logger
 from meg_runtime.config import Config
 from meg_runtime.locking import LockingManager
+from meg_runtime.permissions import PermissionsManager
+import os
 
 
 # Git exception
@@ -31,6 +33,7 @@ class GitRepository(Repository):
         elif url is not None:
             # Clone a repository
             self.__dict__ = clone_repository(url, path, bare=bare, checkout_branch=checkout_branch).__dict__
+        self.permissions = None
         # Initialize the git repository super class
         super().__init__(path, *args, **kwargs)
 
@@ -50,20 +53,61 @@ class GitRepository(Repository):
         for remote in self.remotes:
             remote.fetch()
 
-    def stageChanges(self):
+    def setPermissionsUser(self, username):
+        self.permissions = PermissionsManager(Config.get("path/permissions"), username)
+
+    def pullPermissions(self, username):
+        if not self.pullPath([Config.get("path/permissions")]):
+            Logger.warning("MEG repository: Failed to download permission file")
+        self.permissions = PermissionsManager(Config.get("path/permissions"), username)
+
+    def pushPermissions(self):
+        #Store permissions in file
+        self.permissions.save()
+        #stage permissions file
+        self.index.add(Config.get("path/permissions"))
+        repo.index.write()
+        #Commit and push
+        repo.commit_push(repo.index.write_tree(), "MEG PERMISSIONS UPDATE")
+
+    def stageChanges(self, username = Config.get('user/username')):
         """Adds changes to the index
-        Only adds changes allowd by locking module
+        Only adds changes allowd by locking and permission module
         """
+        self.setPermissionsUser(username)
         self.index.add_all()
         entriesToAdd = []
         for changedFile in self.index:
             lockEntry = LockingManager.findLock(changedFile.path)
-            if lockEntry is None or lockEntry["user"] == Config.get('user/username'):
+            if (lockEntry is None or lockEntry["user"] == username) and self.permissions.can_write(changedFile.path):
                 entriesToAdd.append(changedFile)
         self.index.read(force=True)
         for entry in entriesToAdd:
             self.index.add(entry)
         self.index.write()
+
+    def pullPaths(self, paths):
+        """Checkout only the files in the list of paths
+        ##TODO: NOT WOKRING, WILL THROW AWAY CHANGES IN THE WORKING DIRECTORY
+        Args:
+            paths (list(stirng)): paths to checkout
+        Returns:
+            (bool): Were the paths sucessfuly checkedout
+        """
+        self.fetch_all()
+        fetch_head = self.lookup_reference('FETCH_HEAD')
+        if fetch_head is not None:
+            try:
+            #Try to checkout the paths
+                #self.checkout_tree(self.get(fetch_head.target), paths=paths)
+                self.head.set_target(fetch_head.target)           
+                #self.checkout_head()
+                self.checkout_head(paths=paths)
+                return True
+            except GitError as e:
+                Logger.warning(f'MEG Repositiory: {e}')
+        Logger.warning(f'MEG Repositiory: Could not checkout paths')
+        return False
 
     def pull(self, remote_name='origin', fail_on_conflict=False):
         """Pull and merge
@@ -149,13 +193,14 @@ class GitRepository(Repository):
         self.create_commit(self.head.name, self.default_signature, self.default_signature, message, tree, [self.head.target])
         self.push(remote_name, username, password)
 
-    def isChanged(self):
+    def isChanged(self, username = Config.get('user/username')):
         """Are there local changes from the last commit
-        Only counts changes for locking module commitable files
+        Only counts changes alowed by locking and permission module commitable files
         """
+        self.setPermissionsUser(username)
         for diff in self.index.diff_to_workdir():
             lockEntry = LockingManager.findLock(diff.delta.old_file.path)
-            if lockEntry is None or lockEntry["user"] == Config.get('user/username'):
+            if (lockEntry is None or lockEntry["user"] == Config.get('user/username')) and self.permissions.can_write(diff.delta.old_file.path):
                 return True
         return False
 
