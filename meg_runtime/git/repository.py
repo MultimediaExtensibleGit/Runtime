@@ -50,26 +50,45 @@ class GitRepository(Repository):
         for remote in self.remotes:
             remote.fetch()
 
-    def pull(self, remote_ref_name='refs/remotes/origin/master'):
+    def stageChanges(self):
+        """Adds changes to the index
+        Only adds changes allowd by locking module
+        """
+        self.index.add_all()
+        entriesToAdd = []
+        for changedFile in self.index:
+            lockEntry = LockingManager.findLock(changedFile.path)
+            if lockEntry is None or lockEntry["user"] == Config.get('user/username'):
+                entriesToAdd.append(changedFile)
+        self.index.read(force=True)
+        for entry in entriesToAdd:
+            self.index.add(entry)
+        self.index.write()
+
+    def pull(self, remote_name='origin'):
         """Pull and merge
         Merge is done fully automaticly, currently uses 'ours' on conflicts
         TODO: Preform a proper merge with the locking used to resolve conflicts
-        TODO: Test
+        4/13/20 21 - seems to be working for both merge types
 
         Args:
             remote_ref_name (string): name of reference to the remote being pulled from
         """
         self.fetch_all()
-        #Stage changes that are allowd by locking system
-        self.index.add_all()
-        for changedFile in self.index:
-            lockEntry = LockingManager.findLock(changedFile.path)
-            if not lockEntry is None:
-                if lockEntry["user"] != Config.get('user/username'):
-                    self.index.rm(changedFile.path)
 
-        #Commit and prepare for a merge
-        remoteId = self.lookup_reference(remote_ref_name).target
+        #Branches are not handled very elegently in pygit2s
+        headBranch = None
+        for branch in pygit2.repository.Branches(self):
+            if pygit2.repository.Branches(self)[branch].is_head():
+                headBranch = pygit2.repository.Branches(self)[branch]
+
+        if self.isChanged():
+            #Stage changes that are allowd by locking system
+            self.stageChanges()
+            self.create_commit('HEAD', self.default_signature, self.default_signature, "MEG PULL OWN", self.index.write_tree(), [self.head.target])
+
+        #Prepare for a merge
+        remoteId = self.lookup_reference(headBranch.upstream_name).target
         mergeState, _ = self.merge_analysis(remoteId)
         
         if mergeState & pygit2.GIT_MERGE_ANALYSIS_FASTFORWARD:
@@ -83,21 +102,28 @@ class GitRepository(Repository):
             self.merge(remoteId)
             #conflit (IndexEntry(ancester, ours, theirs))
             for conflit in self.index.conflicts:'''
-            self.merge_commits(self.head.peel(), self.lookup_reference(remote_ref_name).peel(), favor='ours')
+            print("merge")
+            self.merge_commits(self.head.peel(), self.lookup_reference(headBranch.upstream_name).peel(), favor='ours')
             author = self.default_signature
             tree = self.index.write_tree()
             commit = self.create_commit('HEAD', author, author, "MEG MERGE", tree, [self.head.target, remoteId])
         self.state_cleanup()
         
-    def push(self, remote_name='origin'):
+    def push(self, remote_name='origin', username=None, password=None):
         """Pushes current commits
         TODO: Ensure that the config keys are correct
-        TODO: Test
+        4/13/20 21 - seems to be working
 
         Args:
             remote_name (string, optional): name of the remote to push to
+            username (string, optional): username of user account used for pushing
+            password (string, optional): password of user account used for pushing
         """
-        creds = pygit2.UserPass(Config.get('user/username'), Config.get('user/password'))
+        if username is None:
+            username = Config.get('user/username')
+        if password is None:
+            password = Config.get('user/password')
+        creds = pygit2.UserPass(username, password)
         remote = self.remotes[remote_name]
         remote.credentials = creds
         try:
@@ -105,30 +131,39 @@ class GitRepository(Repository):
         except GitError as e:
             Logger.warning("MEG Git Repository: Failed to push commit")
 
-    def commit_push(self, tree, message, remote_name='origin'):
+    def commit_push(self, tree, message, remote_name='origin', username=None, password=None):
         """Commits and pushes staged changes in the tree
         TODO: Ensure that the config keys are correct
-        TODO: Test
+        4/13/20 21 - seems to be working
 
         Args:
             tree (Oid): Oid id created from repositiory index (ex: repo.index.write_tree()) containing the tracked file changes (proably)
             message (string): commit message
             remote_name (string, optional): name of the remote to push to
+            username (string, optional): username of user account used for pushing
+            password (string, optional): password of user account used for pushing
         """
-        author = pygit2.Signature(Config.get('user/name'), Config.get('user/email'))
-        #Create commit on current branch, parent is current commit, author and commiter is the user
-        self.create_commit(self.head.name, author, author, message, tree, [self.head.get_object().hex])
-        self.push(remote_name)
-        
-    def isChanged(self):
-        return len(self.index.diff_to_workdir()) > 0
+        #Create commit on current branch, parent is current commit, author and commiter is the default signature
+        self.create_commit(self.head.name, self.default_signature, self.default_signature, message, tree, [self.head.target])
+        self.push(remote_name, username, password)
 
-    def sync(self, remote_ref_name='refs/remotes/origin/master'):
-        """Pulls and then pushes, merge conflicts automaticly resolved by pull
+    def isChanged(self):
+        """Are there local changes from the last commit
+        Only counts changes for locking module commitable files
         """
-        if self.isChanged():
-            self.pull()
-            self.push()
-        else:
-            self.pull()
+        for diff in self.index.diff_to_workdir():
+            lockEntry = LockingManager.findLock(diff.delta.old_file.path)
+            if lockEntry is None or lockEntry["user"] == Config.get('user/username'):
+                return True
+        return False
+
+    def sync(self, remote_name='origin', username=None, password=None):
+        """Pulls and then pushes, merge conflicts resolved by pull
+
+        Args:
+            username (string, optional): username of user account used for pushing
+            password (string, optional): password of user account used for pushing
+        """
+        self.pull(remote_name)
+        self.push(remote_name, username=None, password=None)
 

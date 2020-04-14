@@ -111,8 +111,8 @@ class LockingManager:
             fetch_head = repo.lookup_reference('FETCH_HEAD')
             if fetch_head is not None:
                 repo.head.set_target(fetch_head.target)
-            #Checkout current version of lockfile
-            repo.checkout_head(paths=['*/' + LockingManager.LOCKFILE_DIR + LockingManager.LOCKFILE_NAME])
+                #Checkout current version of lockfile           
+                repo.checkout_head(paths=[LockingManager.LOCKFILE_DIR + LockingManager.LOCKFILE_NAME])
         except Exception as e:
             Logger.warning(f'MEG Locking: {e}')
             Logger.warning(f'MEG Locking: Could not update locking information')
@@ -132,10 +132,12 @@ class LockingManager:
         #Save current lockfile
         LockingManager.__instance._lockFile.save()
         #Stage lockfile changes
-        repo.index.add(LockingManager.LOCKFILE_DIR + LockingManager.LOCKFILE_NAME)
+        #Must be relitive to worktree root
+        repo.index.add(".meg/locks.json")
         repo.index.write()
         tree = repo.index.write_tree()
         #Commit and push
+        print("LOCKFILE PUSH")
         repo.commit_push(tree, "MEG LOCKFILE UPDATE")
 
 
