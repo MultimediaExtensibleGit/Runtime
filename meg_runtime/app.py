@@ -1,7 +1,6 @@
 """MEG Application Class
 """
 
-import sys
 import pkg_resources
 from PyQt5 import QtWidgets
 from meg_runtime.config import Config
@@ -14,12 +13,15 @@ from meg_runtime import ui
 class App(QtWidgets.QApplication):
     """Multimedia Extensible Git (MEG) Client Application"""
 
-    APP_NAME = 'Multimedia Extensible Git'
-    APP_ICON_PATH = 'meg.ico'
+    NAME = 'Multimedia Extensible Git'
+    VERSION = '0.1'
+    ICON_PATH = 'meg.ico'
     PANELS = [
         'MainPanel',
         'ClonePanel',
         'RepoPanel',
+        'PluginsPanel',
+        'AddPluginPanel',
     ]
 
     __instance = None
@@ -37,9 +39,19 @@ class App(QtWidgets.QApplication):
             self._panels = None
 
     @staticmethod
+    def get_instance():
+        """Get the application instance"""
+        return App.__instance
+
+    @staticmethod
     def get_name():
         """Get application name"""
         return None if not App.__instance else App.__instance.name()
+
+    @staticmethod
+    def get_version():
+        """Get application version"""
+        return None if not App.__instance else App.__instance.version()
 
     @staticmethod
     def get_icon():
@@ -60,12 +72,40 @@ class App(QtWidgets.QApplication):
         """Get a panel by name"""
         return None if not App.__instance else App.__instance.panel(name)
 
+    @staticmethod
+    def refresh_panel(name, **kwargs):
+        """Refresh a panel by name."""
+        instance = App.__instance
+        if instance is None:
+            return None
+        if name in App.PANELS:
+            try:
+                panel_ctor = getattr(ui, name)
+                panel_obj = panel_ctor(**kwargs)
+                instance._panels[panel_obj.get_name()] = panel_obj
+                return panel_obj
+            except Exception as e:
+                Logger.warning(f'MEG UI: {e}')
+                Logger.warning(f'MEG UI: Could not create panel "{name}"')
+        else:
+            Logger.warning(f'MEG UI: Panel does not exist')
+        return None
+
+    @staticmethod
+    def quit(exit_code=0):
+        if App.__instance is not None:
+            App.__instance.exit(exit_code)
+
     def name(self):
         """Get application name"""
-        return App.APP_NAME
+        return App.NAME
+
+    def version(self):
+        """Get application version"""
+        return App.VERSION
 
     def icon(self):
-        return pkg_resources.resource_filename(__name__, App.APP_ICON_PATH)
+        return pkg_resources.resource_filename(__name__, App.ICON_PATH)
 
     def all_panels(self):
         """Get all panels"""
@@ -110,6 +150,8 @@ class App(QtWidgets.QApplication):
         """On application stopped"""
         # Unload the plugins
         PluginManager.unload_all()
+        # Write the exit message
+        Logger.debug(f'MEG: Quit')
 
     # Run the application
     @staticmethod
@@ -126,5 +168,5 @@ class App(QtWidgets.QApplication):
             ret = App.__instance.exec_()
             # On application stop
             App.__instance.on_stop()
-            # Exit
-            sys.exit(ret)
+            # Exit the application
+            App.__instance.exit(ret)

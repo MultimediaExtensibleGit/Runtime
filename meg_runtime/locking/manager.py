@@ -9,7 +9,6 @@ Working directory should be changed by the git module
 
 import os
 from meg_runtime.locking.lockFile import LockFile
-from meg_runtime.logger import Logger
 
 
 class LockingManager:
@@ -34,9 +33,9 @@ class LockingManager:
         Args:
             repo (GitRepository): currently open repository that the file belongs to
             filepath (string): path to the file to lock
-            username (string): username of cuerrent user
+            username (string): username of current user
         Returns:
-            (bool): was lock sucessfuly added
+            (bool): was lock successfully added
         """
         if LockingManager.__instance is None:
             LockingManager()
@@ -50,7 +49,7 @@ class LockingManager:
             LockingManager.__instance._lockFile[filepath] = username
             LockingManager.__instance.pushLocks(repo)
             return True
-        
+
     @staticmethod
     def removeLock(repo, filepath, username):
         """Sync the repo, remove a lock from a file, and sync again
@@ -68,13 +67,19 @@ class LockingManager:
         repo.setPermissionsUser(username)
         if(lock is None):
             return True
+<<<<<<< HEAD
         elif(lock["user"] == username or repo.permissions.can_remove_lock()):
             del LockingManager.__instance._lockFile[filepath] 
+=======
+        elif(lock["user"] == username or False):
+            # TODO: check that user role can remove other user's locks
+            del LockingManager.__instance._lockFile[filepath]
+>>>>>>> 92915ef9bb62dc34149b5b5d6f1402700b38d0cb
         else:
             return False
         LockingManager.__instance.pushLocks(repo)
         return True
-        
+
     @staticmethod
     def findLock(filepath):
         """Find if there is a lock on the file, does not automatily sync the lock file
@@ -97,6 +102,7 @@ class LockingManager:
         return LockingManager.__instance._lockFile
 
     @staticmethod
+<<<<<<< HEAD
     def pullLocks(repo):
         """Pulls the lock file from remote and loads it
 
@@ -122,6 +128,18 @@ class LockingManager:
         Args:
             repo(GitRepository): currently open repository that the file belongs to
         """
+=======
+    def updateLocks():
+        """Syncronizes the local locks with the remote locks, manually merge local data with remote
+        """
+        # TODO: Sync with repo, as described below
+        # https://www.quora.com/How-can-I-pull-one-file-from-a-Git-repository-instead-of-the-entire-project/answer/Aarti-Dwivedi
+        # fetch
+        # checkout from latest commit lock and permissions files
+        # create new LockFile object off of it and merge with current object
+        # save date
+        # if lockfile has changed stage, commit, and push it
+>>>>>>> 92915ef9bb62dc34149b5b5d6f1402700b38d0cb
         if LockingManager.__instance is None:
             LockingManager()
         #Save current lockfile
