@@ -105,7 +105,7 @@ class PermissionsManager(dict):
         pass
 
     def remove_user_permission(self, user, key, file=None):
-        pass 
+        pass
 
     def _general_check(self, user, roleKey, userKey):
         roles = self._get_roles(user)
@@ -120,11 +120,11 @@ class PermissionsManager(dict):
         """Save currenly held permissions / roles to file"""
         if not os.path.exists(PermissionsManager.PERMISSION_FILE):
             os.makedirs(os.path.dirname(PermissionsManager.PERMISSION_FILE), exist_ok=True)
-        json.dump(self, open(PERMISSION_FILE, 'w+'))
+        json.dump(self, open(PermissionsManager.PERMISSION_FILE, 'w+'))
 
     def _get_roles(self, user):
         """Get a list of users from the configuration file."""
         roles = [role for role in self['roles']
-                if user in self['roles'][role]]
+                 if user in self['roles'][role]]
         roles.insert(0, "default")
         return roles

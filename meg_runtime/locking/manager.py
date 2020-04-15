@@ -7,8 +7,8 @@ All file paths are relitive to the repository directory
 Working directory should be changed by the git module
 """
 
-import os
 from meg_runtime.locking.lockFile import LockFile
+from meg_runtime.logger import Logger
 
 
 class LockingManager:
@@ -65,7 +65,7 @@ class LockingManager:
         if(lock is None):
             return True
         elif(lock["user"] == username or repo.permissions.can_remove_lock(username)):
-            del LockingManager.__instance._lockFile[filepath] 
+            del LockingManager.__instance._lockFile[filepath]
         else:
             return False
         LockingManager.__instance.pushLocks(repo)
@@ -104,8 +104,7 @@ class LockingManager:
         if repo is None:
             Logger.warning("MEG Locking: Could not open repositiory")
             return False
-         
-        #Fetch current version
+        # Fetch current version
         if not repo.pullPaths([LockingManager.LOCKFILE_PATH]):
             Logger.warning("MEG Locking: Could not download newest lockfile")
 
@@ -120,14 +119,12 @@ class LockingManager:
         """
         if LockingManager.__instance is None:
             LockingManager()
-        #Save current lockfile
+        # Save current lockfile
         LockingManager.__instance._lockFile.save()
-        #Stage lockfile changes
-        #Must be relitive to worktree root
+        # Stage lockfile changes
+        # Must be relitive to worktree root
         repo.index.add(LockingManager.LOCKFILE_PATH)
         repo.index.write()
         tree = repo.index.write_tree()
-        #Commit and push
+        # Commit and push
         repo.commit_push(tree, "MEG LOCKFILE UPDATE")
-
-

@@ -17,7 +17,7 @@ def change_to_test_directory():
 
 def test_permissions_00(change_to_test_directory):
     PermissionsManager.PERMISSION_FILE = 'test_permissions_00.json'
-    perms = PermissionsManager()
+    PermissionsManager()
 
 
 def test_permissions_01(change_to_test_directory):

@@ -6,7 +6,6 @@ from meg_runtime.logger import Logger
 from meg_runtime.config import Config
 from meg_runtime.locking import LockingManager
 from meg_runtime.permissions import PermissionsManager
-import os
 
 
 # Git exception
@@ -63,15 +62,15 @@ class GitRepository(Repository):
     def pushPermissions(self):
         """Save permissions file and push to repo
         """
-        #Store permissions in file
+        # Store permissions in file
         self.permissions.save()
-        #stage permissions file
+        # stage permissions file
         self.index.add(PermissionsManager.PERMISSION_FILE)
-        repo.index.write()
-        #Commit and push
-        repo.commit_push(repo.index.write_tree(), "MEG PERMISSIONS UPDATE")
+        self.index.write()
+        # Commit and push
+        self.commit_push(self.index.write_tree(), "MEG PERMISSIONS UPDATE")
 
-    def stageChanges(self, username = Config.get('user/username')):
+    def stageChanges(self, username=Config.get('user/username')):
         """Adds changes to the index
         Only adds changes allowd by locking and permission module
         """
@@ -98,10 +97,7 @@ class GitRepository(Repository):
         fetch_head = self.lookup_reference('FETCH_HEAD')
         if fetch_head is not None:
             try:
-            #Try to checkout the paths
-                #self.checkout_tree(self.get(fetch_head.target), paths=paths)
-                self.head.set_target(fetch_head.target)           
-                #self.checkout_head()
+                self.head.set_target(fetch_head.target)
                 self.checkout_head(paths=paths)
                 return True
             except GitError as e:
@@ -119,29 +115,25 @@ class GitRepository(Repository):
             remote_ref_name (string): name of reference to the remote being pulled from
         """
         self.fetch_all()
-
-        #Branches are not handled very elegently in pygit2s
+        # Branches are not handled very elegently in pygit2s
         headBranch = None
         for branch in pygit2.repository.Branches(self):
             if pygit2.repository.Branches(self)[branch].is_head():
                 headBranch = pygit2.repository.Branches(self)[branch]
-
+        # Find and stage changes that are allowd by locking system
         if self.isChanged():
-            #Stage changes that are allowd by locking system
             self.stageChanges()
             self.create_commit('HEAD', self.default_signature, self.default_signature, "MEG PULL OWN", self.index.write_tree(), [self.head.target])
-
-        #Prepare for a merge
+        # Prepare for a merge
         remoteId = self.lookup_reference(headBranch.upstream_name).target
         mergeState, _ = self.merge_analysis(remoteId)
-        
         if mergeState & pygit2.GIT_MERGE_ANALYSIS_FASTFORWARD:
-            #Fastforward and checkout remote
+            # Fastforward and checkout remote
             self.checkout_tree(self.get(remoteId))
             self.head.set_target(remoteId)
             self.checkout_head()
         elif mergeState & pygit2.GIT_MERGE_ANALYSIS_NORMAL:
-            #Preform merge
+            # Preform merge
             '''TODO: Preform a proper merge with the locking
             self.merge(remoteId)
             #conflit (IndexEntry(ancester, ours, theirs))
@@ -150,12 +142,11 @@ class GitRepository(Repository):
                 self.state_cleanup()
                 return False
             self.merge_commits(self.head.peel(), self.lookup_reference(headBranch.upstream_name).peel(), favor='ours')
-            author = self.default_signature
-            tree = self.index.write_tree()
-            commit = self.create_commit('HEAD', author, author, "MEG MERGE", tree, [self.head.target, remoteId])
+            # Commit the merge
+            self.create_commit('HEAD', self.default_signature, self.default_signature, "MEG MERGE", self.index.write_tree(), [self.head.target, remoteId])
         self.state_cleanup()
         return True
-        
+
     def push(self, remote_name='origin', username=None, password=None):
         """Pushes current commits
         4/13/20 21 - seems to be working
@@ -175,6 +166,7 @@ class GitRepository(Repository):
         try:
             remote.push([self.head.name], callbacks=pygit2.RemoteCallbacks(credentials=creds))
         except GitError as e:
+            Logger.warning(e)
             Logger.warning("MEG Git Repository: Failed to push commit")
 
     def commit_push(self, tree, message, remote_name='origin', username=None, password=None):
@@ -189,11 +181,11 @@ class GitRepository(Repository):
             username (string, optional): username of user account used for pushing
             password (string, optional): password of user account used for pushing
         """
-        #Create commit on current branch, parent is current commit, author and commiter is the default signature
+        # Create commit on current branch, parent is current commit, author and commiter is the default signature
         self.create_commit(self.head.name, self.default_signature, self.default_signature, message, tree, [self.head.target])
         self.push(remote_name, username, password)
 
-    def isChanged(self, username = Config.get('user/username')):
+    def isChanged(self, username=Config.get('user/username')):
         """Are there local changes from the last commit
         Only counts changes alowed by locking and permission module commitable files
         """
@@ -212,4 +204,3 @@ class GitRepository(Repository):
         """
         self.pull(remote_name)
         self.push(remote_name, username=None, password=None)
-
