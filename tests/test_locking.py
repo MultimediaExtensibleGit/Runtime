@@ -1,13 +1,14 @@
 import pytest
 from unittest import mock
 import os
+import shutil
 from meg_runtime.locking import LockingManager
 from meg_runtime.locking.lockFile import LockFile
 
 
 @pytest.fixture()
 def generateLocking():
-    lock = LockFile(LockingManager.LOCKFILE_DIR + LockingManager.LOCKFILE_NAME)
+    lock = LockFile(LockingManager.LOCKFILE_PATH)
     lock["project/jeffsPart.dwg"] = "jeff"
     lock["project/jeffs2ndPart.dwg"] = "bob"
     lock["src/other.txt"] = "bob"
@@ -15,8 +16,7 @@ def generateLocking():
     LockingManager._LockingManager__instance = None
     LockingManager()
     yield (len(lock), mock.MagicMock())
-    os.remove(LockingManager.LOCKFILE_DIR + LockingManager.LOCKFILE_NAME)
-    os.rmdir(LockingManager.LOCKFILE_DIR)
+    shutil.rmtree(".meg")
 
 def test_findLock(generateLocking):
     entry = LockingManager.findLock("project/jeffs2ndPart.dwg")

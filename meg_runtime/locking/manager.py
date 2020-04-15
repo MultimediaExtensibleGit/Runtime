@@ -16,8 +16,7 @@ class LockingManager:
     To be used to lock files, unlock files, override locks, and view locks
     Will confirm user roles and preform required git operations
     """
-    LOCKFILE_DIR = ".meg" + os.sep
-    LOCKFILE_NAME = "locks.json"
+    LOCKFILE_PATH = ".meg/locks.json"
     __instance = None
 
     def __init__(self):
@@ -25,7 +24,7 @@ class LockingManager:
             raise Exception("Trying to create a second instance of LockingManager, which is a singleton")
         else:
             LockingManager.__instance = self
-            LockingManager.__instance._lockFile = LockFile(LockingManager.LOCKFILE_DIR + LockingManager.LOCKFILE_NAME)
+            LockingManager.__instance._lockFile = LockFile(LockingManager.LOCKFILE_PATH)
 
     @staticmethod
     def addLock(repo, filepath, username):
@@ -39,8 +38,7 @@ class LockingManager:
         """
         if LockingManager.__instance is None:
             LockingManager()
-        repo.setPermissionsUser(username)
-        if not repo.permissions.can_lock():
+        if not repo.permissions.can_lock(username):
             return False
         LockingManager.__instance.pullLocks(repo)
         if filepath in LockingManager.__instance._lockFile:
@@ -64,10 +62,9 @@ class LockingManager:
             LockingManager()
         LockingManager.__instance.pullLocks(repo)
         lock = LockingManager.__instance._lockFile[filepath]
-        repo.setPermissionsUser(username)
         if(lock is None):
             return True
-        elif(lock["user"] == username or repo.permissions.can_remove_lock()):
+        elif(lock["user"] == username or repo.permissions.can_remove_lock(username)):
             del LockingManager.__instance._lockFile[filepath] 
         else:
             return False
@@ -109,7 +106,7 @@ class LockingManager:
             return False
          
         #Fetch current version
-        if not repo.pullPaths([LockingManager.LOCKFILE_DIR[:-1] + '/' + LockingManager.LOCKFILE_NAME]):
+        if not repo.pullPaths([LockingManager.LOCKFILE_PATH]):
             Logger.warning("MEG Locking: Could not download newest lockfile")
 
         LockingManager.__instance._lockFile.load()
@@ -127,7 +124,7 @@ class LockingManager:
         LockingManager.__instance._lockFile.save()
         #Stage lockfile changes
         #Must be relitive to worktree root
-        repo.index.add(LockingManager.LOCKFILE_DIR[:-1] + '/' + LockingManager.LOCKFILE_NAME)
+        repo.index.add(LockingManager.LOCKFILE_PATH)
         repo.index.write()
         tree = repo.index.write_tree()
         #Commit and push

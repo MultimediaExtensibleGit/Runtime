@@ -33,7 +33,7 @@ class GitRepository(Repository):
         elif url is not None:
             # Clone a repository
             self.__dict__ = clone_repository(url, path, bare=bare, checkout_branch=checkout_branch).__dict__
-        self.permissions = None
+        self.permissions = PermissionsManager()
         # Initialize the git repository super class
         super().__init__(path, *args, **kwargs)
 
@@ -53,17 +53,12 @@ class GitRepository(Repository):
         for remote in self.remotes:
             remote.fetch()
 
-    def setPermissionsUser(self, username):
-        """Reload permissions and set user
-        """
-        self.permissions = PermissionsManager(Config.get("path/permissions"), username)
-
     def pullPermissions(self, username):
         """Pull down current version of permissions file
         """
-        if not self.pullPath([Config.get("path/permissions")]):
+        if not self.pullPath([PermissionsManager.PERMISSION_FILE]):
             Logger.warning("MEG repository: Failed to download permission file")
-        self.permissions = PermissionsManager(Config.get("path/permissions"), username)
+        self.permissions = PermissionsManager()
 
     def pushPermissions(self):
         """Save permissions file and push to repo
@@ -71,7 +66,7 @@ class GitRepository(Repository):
         #Store permissions in file
         self.permissions.save()
         #stage permissions file
-        self.index.add(Config.get("path/permissions"))
+        self.index.add(PermissionsManager.PERMISSION_FILE)
         repo.index.write()
         #Commit and push
         repo.commit_push(repo.index.write_tree(), "MEG PERMISSIONS UPDATE")
@@ -80,12 +75,11 @@ class GitRepository(Repository):
         """Adds changes to the index
         Only adds changes allowd by locking and permission module
         """
-        self.setPermissionsUser(username)
         self.index.add_all()
         entriesToAdd = []
         for changedFile in self.index:
             lockEntry = LockingManager.findLock(changedFile.path)
-            if (lockEntry is None or lockEntry["user"] == username) and self.permissions.can_write(changedFile.path):
+            if (lockEntry is None or lockEntry["user"] == username) and self.permissions.can_write(username, changedFile.path):
                 entriesToAdd.append(changedFile)
         self.index.read(force=True)
         for entry in entriesToAdd:
@@ -203,10 +197,9 @@ class GitRepository(Repository):
         """Are there local changes from the last commit
         Only counts changes alowed by locking and permission module commitable files
         """
-        self.setPermissionsUser(username)
         for diff in self.index.diff_to_workdir():
             lockEntry = LockingManager.findLock(diff.delta.old_file.path)
-            if (lockEntry is None or lockEntry["user"] == Config.get('user/username')) and self.permissions.can_write(diff.delta.old_file.path):
+            if (lockEntry is None or lockEntry["user"] == Config.get('user/username')) and self.permissions.can_write(username, diff.delta.old_file.path):
                 return True
         return False
 
