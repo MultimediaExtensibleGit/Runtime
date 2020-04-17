@@ -1,6 +1,7 @@
 """Git repository"""
 
 import pygit2
+import os
 from pygit2 import init_repository, clone_repository, Repository, GitError
 from meg_runtime.logger import Logger
 from meg_runtime.config import Config
@@ -64,7 +65,7 @@ class GitRepository(Repository):
     def stageChanges(self, username):
         """Adds changes to the index
         Only adds changes allowd by locking and permission module
-        
+
         Args:
             username(string): username of the git user
         Returns:
@@ -125,7 +126,7 @@ class GitRepository(Repository):
         remoteId = self.lookup_reference("FETCH_HEAD").resolve().target
         localId = self.lookup_reference("HEAD").resolve().target
         ahead, behind = self.ahead_behind(localId, remoteId)
-        #Pull only required if we are behind
+        # Pull only required if we are behind
         if behind > 0:
             # If changes, commit and prepare for merge
             if self.isChanged(username):
