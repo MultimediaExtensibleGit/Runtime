@@ -57,12 +57,14 @@ class Permissions(dict):
         """Return True if the current user can write to a specific path"""
         roles = self._get_roles(user)
         fileHasPermissions = path in self['files']
+        # Read only file flag denies global write permissions, allows write for file specific write permissions
+        readOnly = fileHasPermissions and self['files'][path]['read_only']
         for role in roles:
-            if role in self['general']['roles_write']:
+            if not readOnly and role in self['general']['roles_write']:
                 return True
             if fileHasPermissions and role in self['files'][path]['roles_write']:
                 return True
-        if user in self['general']['users_write']:
+        if not readOnly and user in self['general']['users_write']:
             return True
         if fileHasPermissions and user in self['files'][path]['users_write']:
             return True
