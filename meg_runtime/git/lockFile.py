@@ -73,11 +73,7 @@ class LockFile(MutableMapping):
         Must be ran to save any new or removed locks
         Will create file if it doesn't already exist
         """
-        fileData = {
-                    "comment": "MEG System locking file, do not manually editing",
-                    "locks": self._lockData
-                }
-        json.dump(fileData, open(self._filepath, 'w'))
+        json.dump(self._lockData, open(self._filepath, 'w'))
 
     def load(self, filepath=None):
         """Loads this object with the current data in the lockfile, overrideing its current data
@@ -95,11 +91,11 @@ class LockFile(MutableMapping):
             if(not os.path.exists(filepath)):
                 self._createLockFile(filepath)
         try:
-            self._lockData = json.load(open(filepath))["locks"]
+            self._lockData = json.load(open(filepath))
         except (json.decoder.JSONDecodeError, KeyError):
             self._createLockFile(filepath)
             try:
-                self._lockData = json.load(open(filepath))["locks"]
+                self._lockData = json.load(open(filepath))
             except (json.decoder.JSONDecodeError, KeyError):
                 Logger.warning("MEG Locking: Unable to read contents of lock file at {0}".format(self._filepath))
                 return False
@@ -116,7 +112,7 @@ class LockFile(MutableMapping):
         self._lockData = {}
         self._filepath = None
         try:
-            self._lockData = json.loads(s)["locks"]
+            self._lockData = json.loads(s)
         except (json.decoder.JSONDecodeError, KeyError):
             Logger.warning("MEG Locking: Blob json is malformed")
             return False

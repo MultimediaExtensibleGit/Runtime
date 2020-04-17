@@ -121,6 +121,7 @@ class GitRepository(Repository):
         if password is None:
             password = Config.get('user/password')
         self.__permissions.save()
+        self.__locking.save()
         # Find state of both references have
         self.fetch_all()
         remoteId = self.lookup_reference("FETCH_HEAD").resolve().target
@@ -175,9 +176,8 @@ class GitRepository(Repository):
                         # Else its our lock
                         self.writeConflictResolution(conflict[1], path)
                 elif path == Locking.LOCKFILE_PATH:
-                    oldLocks = None if conflict[0] is None else Locking(self, conflict[0].data)
-                    remoteLocks = None if conflict[1] is None else Locking(self, conflict[1].data)
-                    self.__locking.merge(oldLocks, remoteLocks)
+                    # For conflicting Locks that have been changed on remote, it is safest to discard local version and accept the remote
+                    self.writeConflictResolution(conflict[2], path)
                 elif path == Permissions.PERMISSION_PATH:
                     # For conflicting Permissions that have been changed on remote, it is safest to discard local version and accept the remote
                     self.writeConflictResolution(conflict[2], path)
@@ -273,6 +273,8 @@ class GitRepository(Repository):
             username = Config.get('user/username')
         if password is None:
             password = Config.get('user/password')
+        self.__permissions.save()
+        self.__locking.save()
         self.pull(remote_name, username=username, password=password)
         if self.isChanged(username):
             self.stageChanges(username)

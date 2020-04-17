@@ -75,33 +75,3 @@ class Locking:
         """
         self._lockFile.save()
 
-    def merge(self, oldLocalLocks, remoteLocks):
-        # Get all unique paths
-        keys = []
-        if oldLocalLocks is not None:
-            keys += oldLocalLocks._lockFile.keys()
-        if remoteLocks is not None:
-            keys += remoteLocks._lockFile.keys()
-        keys = set(keys)
-        for key in keys:
-            isOld = False if oldLocalLocks is None else key in oldLocalLocks._lockFile
-            isLocal = key in self._lockFile
-            isRemote = False if remoteLocks is None else key in remoteLocks._lockFile
-            if isLocal and isRemote:
-                # If lock is defined in both, use the older one
-                self._lockFile[key] = self._lockFile[key] if self._lockFile[key] < remoteLocks._lockFile[key] else remoteLocks._lockFile[key]
-            elif isOld and isLocal:
-                # If lock defined in both common old and local, but not remote
-                if oldLocalLocks._lockFile[key] == self._lockFile[key]:
-                    # If the local one hasn't changed, delete
-                    del self._lockFile[key]
-            elif isOld and isRemote:
-                # If lock defined in both common old and remote, but not local
-                if oldLocalLocks._lockFile[key] != remoteLocks._lockFile[key]:
-                    # If the remote one has changed, add it
-                    self._lockFile[key] = remoteLocks._lockFile[key]
-            elif isRemote:
-                # If the lock is on remote, but not any other, add it
-                self._lockFile[key] = remoteLocks._lockFile[key]
-            # If the lock is only on local then it is still here
-        self.save()

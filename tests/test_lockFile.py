@@ -9,7 +9,8 @@ def generateLockfile():
     fileName = ".meg/templockfile"
     LockFile(fileName)  # Generate lockfile
     yield fileName
-    shutil.rmtree(".meg")
+    if os.path.exists(".meg"):
+        shutil.rmtree(".meg")
 
 
 @pytest.fixture()

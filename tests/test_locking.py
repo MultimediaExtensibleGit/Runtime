@@ -3,6 +3,7 @@ from unittest import mock
 import shutil
 from meg_runtime.git.locking import Locking
 from meg_runtime.git.lockFile import LockFile
+import os
 
 
 @pytest.fixture()
@@ -13,7 +14,8 @@ def generateLocking():
     lock["src/other.txt"] = "bob"
     lock.save()
     yield (len(lock), mock.MagicMock())
-    shutil.rmtree(".meg")
+    if os.path.exists(".meg"):
+        shutil.rmtree(".meg")
 
 
 def test_findLock(generateLocking):
