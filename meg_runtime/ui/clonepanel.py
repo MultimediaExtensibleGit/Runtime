@@ -21,22 +21,37 @@ class ClonePanel(BasePanel):
         """Clone the repository."""
         # TODO: Need to update the Home panel with the new repo
         # Setup repository
-        repo_url = self.server_text_edit.toPlainText()
-        username = self.username_text_edit.toPlainText()
-        password = self.password_text_edit.toPlainText()
+        username = None
+        password = None
+        if self.enter_credentials_radio.isChecked():
+            (username, password) = self._open_credential_dialog()
+        elif self.use_stored_credentials_radio.isChecked():
+            pass
+            # TODO
+        repo_url = self.server_text_edit.text()
         repo_path = self.directory
-        # TODO: Handle username + password
+        # TODO: Handle username+password
         # Set the config
         repo = GitManager.clone(repo_url, repo_path)
         if repo is not None:
-            repos = Config.get('path/repos', defaultValue=[])
-            repos.append({'url': repo_url, 'path': repo_path})
-            Config.set('path/repos', repos)
-            Config.save()
-            App.get_window().push_view(RepoPanel(repo_url=repo_url, repo_path=repo_path, repo=repo))
+            self._save_repo_entry_in_config(repo_url, repo_path)
+            App.get_window().push_view(RepoPanel(repo))
         else:
             Logger.warning(f'MEG UIManager: Could not clone repo "{repo_url}"')
             QtWidgets.QMessageBox.warning(App.get_window(), App.get_name(), f'Could not clone the repo "{repo_url}"')
+
+    def _save_repo_entry_in_config(self, repo_url, repo_path):
+        repos = Config.get('repos', defaultValue=[])
+        duplicate_found  = False
+        for index, repo in enumerate(repos):
+            if repo['path'] == repo_path:
+                repos[index]['url'] = repo_url
+                duplicate_found = True
+                break
+        if not duplicate_found:
+            repos.append({'url': repo_url, 'path': repo_path})
+        Config.set('repos', repos)
+        Config.save()
 
     def get_title(self):
         """Get the title of this panel."""
@@ -50,12 +65,14 @@ class ClonePanel(BasePanel):
         self.ok_button.clicked.connect(self.clone)
         self.back_button = instance.findChild(QtWidgets.QPushButton, 'backButton')
         self.back_button.clicked.connect(App.return_to_main)
+        # Radio Buttons
+        self.no_credentials_radio = instance.findChild(QtWidgets.QRadioButton, 'noCredenitalsRadio')
+        self.enter_credentials_radio = instance.findChild(QtWidgets.QRadioButton, 'enterCredentialsRadio')
+        self.use_stored_credentials_radio = instance.findChild(QtWidgets.QRadioButton, 'useStoredCredentialsRadio')
         # Add the choose folder handler
         self.choose_folder_button = instance.findChild(QtWidgets.QPushButton, 'chooseFolderButton')
         self.choose_folder_button.clicked.connect(self.choose_folder)
-        self.server_text_edit = instance.findChild(QtWidgets.QTextEdit, 'server')
-        self.username_text_edit = instance.findChild(QtWidgets.QTextEdit, 'username')
-        self.password_text_edit = instance.findChild(QtWidgets.QTextEdit, 'password')
+        self.server_text_edit = instance.findChild(QtWidgets.QLineEdit, 'server')
         self.chosen_directory_label = instance.findChild(QtWidgets.QLabel, 'chosenDirectoryLabel')
 
     def choose_folder(self):
@@ -68,3 +85,27 @@ class ClonePanel(BasePanel):
         if dialog.exec_():
             self.directory = dialog.selectedFiles()[0]
             self.chosen_directory_label.setText(self.directory)
+
+    def _open_credential_dialog(self):
+        """Open a credential dialog for the user and return (username, password)."""
+        # Setup the dialog
+        dialog = QtWidgets.QDialog()
+        spacer = QtWidgets.QVBoxLayout()
+        spacer.addWidget(QtWidgets.QLabel('Username'))
+        username = QtWidgets.QLineEdit()
+        spacer.addWidget(username)
+        spacer.addWidget(QtWidgets.QLabel('Password'))
+        password = QtWidgets.QLineEdit()
+        password.setEchoMode(QtWidgets.QLineEdit.Password)
+        spacer.addWidget(password)
+        # Add the close button
+        button = QtWidgets.QPushButton('OK')
+        def ok_click():
+            """Handle the OK button click."""
+            dialog.done(0)
+        button.clicked.connect(ok_click)
+        spacer.addWidget(button)
+        dialog.setLayout(spacer)
+        # Execute it
+        dialog.exec_()
+        return (username.text(), password.text())

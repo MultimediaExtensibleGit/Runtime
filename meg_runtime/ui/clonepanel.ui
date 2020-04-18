@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string/>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0,0,0">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0,0">
    <item>
     <widget class="QLabel" name="serverLabel">
      <property name="text">
@@ -22,49 +22,29 @@
     </widget>
    </item>
    <item>
-    <widget class="QTextEdit" name="server">
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>30</height>
-      </size>
-     </property>
-    </widget>
+    <widget class="QLineEdit" name="server"/>
    </item>
    <item>
-    <widget class="QLabel" name="userNameLabel">
+    <widget class="QRadioButton" name="noCredentialsRadio">
      <property name="text">
-      <string>Username</string>
+      <string>No credentials</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QTextEdit" name="username">
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>30</height>
-      </size>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="passwordLabel">
+    <widget class="QRadioButton" name="enterCredentialsRadio">
      <property name="text">
-      <string>Password</string>
+      <string>Enter credentials</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QTextEdit" name="password">
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>30</height>
-      </size>
-     </property>
-     <property name="autoFillBackground">
-      <bool>false</bool>
+    <widget class="QRadioButton" name="useStoredCredentialsRadio">
+     <property name="text">
+      <string>Use stored credentials</string>
      </property>
     </widget>
    </item>
