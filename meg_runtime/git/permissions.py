@@ -40,7 +40,7 @@ class Permissions(dict):
 
     def can_write(self, user, path):
         """Return True if the current user can write to a specific path"""
-        roles = self._get_roles(user)
+        roles = self.get_roles(user)
         fileHasPermissions = path in self['files']
         # Read only file flag denies global write permissions, allows write for file specific write permissions
         readOnly = fileHasPermissions and self['files'][path]['read_only']
@@ -56,52 +56,146 @@ class Permissions(dict):
         return False
 
     def can_remove_lock(self, user):
-        return self._general_check('roles_remove_locks', 'users_remove_locks')
+        return self._general_check(user, 'roles_remove_locks', 'users_remove_locks')
 
     def can_grant_permissions(self, user):
-        return self._general_check('roles_grant', 'users_grant')
+        return self._general_check(user, 'roles_grant', 'users_grant')
 
-    def grant_role(self, role):
-        pass
+    def can_modify_roles(self, user):
+        return self._general_check(user, 'roles_modify_roles', 'users_modify_roles')
 
-    def remove_role(self, role):
-        pass
+    def grant_role(self, user, targetUser, role):
+        """If user is allowd to grant roles, grant role to targetUser
+        """
+        if self.can_grant_permissions(user):
+            if role in self["roles"]:
+                self["roles"][role].append(targetUser)
+                return True
+        return False
 
-    def create_role(self, role):
-        pass
+    def remove_role(self, user, targetUser, role):
+        """If user is allowd to grant roles, remove role from targetUser
+        """
+        if self.can_grant_permissions(user):
+            if role in self["roles"]:
+                if targetUser in self["roles"][role]:
+                    self["roles"][role].remove(targetUser)
+                    return True
+        return False
 
-    def delete_role(self, role):
-        pass
+    def create_role(self, user, role):
+        """If user is allowd to modify roles, create the role. Cannot create existing role
+        """
+        if self.can_modify_roles(user) and role not in self["roles"] and role != "default":
+            self["roles"][role] = []
+            return True
+        return False
 
-    def add_role_permission(self, role, key, file=None):
+    def delete_role(self, user, role):
+        """If user is allowd to modify roles, delete the role. Cannot delete default role
+        """
+        if self.can_modify_roles(user) and role in self["roles"] and role != "default":
+            del self["roles"][role]
+            return True
+        return False
+
+    def add_role_permission(self, user, role, key, path=None):
         """Add a permission to a role
-        Defaults to general permission, if file is given, permission will only apply to that file
-        TODO
+        Defaults to general permissions, if file is given, permission will only apply to that file
 
         Args:
+            user (string): name of current user
             role (string): role name
             key (string): permission name
-            file (string, optional): file path of file to grant role permission to
+            path (string, optional): file path of file to grant role permission to
+        Returns:
+            (bool): True if role no longer has permission. False if role doesn't exist or unable to remove permission
         """
-        pass
+        if self.can_modify_roles(user) and role in self["roles"]:
+            if path is None:
+                self["general"][key].append(role)
+            else:
+                if path not in self["files"]:
+                    self._generate_file_entry(path)
+                self["files"][path][key].append(role)
+            return True
+        return False
 
-    def remove_role_permission(self, role, key, file=None):
-        pass
+    def remove_role_permission(self, user, role, key, path=None):
+        """Removes the permissions of a role
+        See add_role_permission
+        """
+        if self.can_modify_roles(user) and role in self["roles"]:
+            if path is None:
+                if role in self["general"][key]:
+                    self["general"][key].remove(role)
+            else:
+                if path in self["files"] and role in self["files"][path][key]:
+                    self["files"][path][key].remove(role)
+            return True
+        return False
 
-    def add_user_permission(self, user, key, file=None):
-        pass
+    def add_user_permission(self, user, targetUser, key, path=None):
+        """Add a permission to a user
+        Defaults to general permissions, if file is given, permission will only apply to that file
 
-    def remove_user_permission(self, user, key, file=None):
-        pass
+        Args:
+            user (string): name of current user
+            targetUser (string): name of user to add permission to
+            key (string): permission name
+            path (string, optional): file path of file to grant role permission to
+        Returns:
+            (bool): True if user no longer has permission. False if unable to remove permission
+        """
+        if self.can_grant_permissions(user):
+            if path is None:
+                self["general"][key].append(targetUser)
+            else:
+                if path not in self["files"]:
+                    self._generate_file_entry(path)
+                self["files"][path][key].append(targetUser)
+            return True
+        return False
+
+    def remove_user_permission(self, user, targetUser, key, path=None):
+        """Removes the permissions of a user
+        See add_user_permission
+        """
+        if self.can_grant_permissions(user):
+            if path is None:
+                if targetUser in self["general"][key]:
+                    self["general"][key].remove(targetUser)
+            else:
+                if path in self["files"] and targetUser in self["files"][path][key]:
+                    self["files"][path][key].remove(targetUser)
+            return True
+        return False
+
+    def set_file_readonly(self, user, path, readonly):
+        """Sets or unsets a file as read only
+        """
+        if self.can_grant_permissions(user):
+            if path not in self["files"]:
+                self._generate_file_entry(path)
+            self["files"][path]["read_only"] = readonly
+            return True
+        return False
 
     def _general_check(self, user, roleKey, userKey):
-        roles = self._get_roles(user)
+        roles = self.get_roles(user)
         for role in roles:
             if role in self['general'][roleKey]:
                 return True
         if user in self['general'][userKey]:
             return True
         return False
+
+    def _generate_file_entry(self, path):
+        self["files"][path] = {
+            "roles_write": [],
+            "users_write": [],
+            "read_only": False
+        }
 
     def save(self):
         """Save currenly held permissions / roles to file"""
@@ -137,7 +231,7 @@ class Permissions(dict):
             Logger.warning('MEG Permission: {0}'.format(e))
             Logger.warning('MEG Permission: Could not load permissions file <' + Permissions.PERMISSION_PATH + '>, using default permissions')
 
-    def _get_roles(self, user):
+    def get_roles(self, user):
         """Get a list of users from the configuration file."""
         roles = [role for role in self['roles']
                  if user in self['roles'][role]]
