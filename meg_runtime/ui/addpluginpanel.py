@@ -1,7 +1,6 @@
-from PyQt5 import QtWidgets
 
+from PyQt5 import QtWidgets
 from meg_runtime.app import App
-from meg_runtime.ui.manager import UIManager
 from meg_runtime.plugins import PluginManager
 from meg_runtime.ui.basepanel import BasePanel
 
@@ -9,23 +8,21 @@ from meg_runtime.ui.basepanel import BasePanel
 class AddPluginPanel(BasePanel):
     """Setup the plugin panel."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, plugins_panel, **kwargs):
         super().__init__(**kwargs)
         self.selected_file = None
+        self._plugins_panel = plugins_panel
 
     def get_title(self):
         """Get the title of this panel."""
         return 'Add New Plugin'
 
+    def get_plugins_panel(self):
+        """Get the plugins panel that spawned this panel."""
+        return self._plugins_panel
+
     def on_load(self):
         """Load dynamic elements within the panel."""
-        self.attach_handlers()
-        self.reset_form()
-        PluginManager.update_cache()
-        self.bind_available_plugins()
-
-    def attach_handlers(self):
-        """Initialize component by attaching handlers for form fields"""
         instance = self.get_widgets()
         # add button
         self.add_button = instance.findChild(QtWidgets.QPushButton, 'addButton')
@@ -47,14 +44,15 @@ class AddPluginPanel(BasePanel):
         self.url_radio_button.clicked.connect(self.enable_url_selection)
         self.url_field = instance.findChild(QtWidgets.QLineEdit, 'urlField')
 
-    def reset_form(self):
-        """clear all form values"""
-        self.available_radio_button.setChecked(True)
-        self.file_label.setText('')
-        self.url_field.setText('')
-
-    def bind_available_plugins(self):
-        """Add all available plugins to the available plugin list"""
+    def on_show(self):
+        """Showing the panel."""
+        if not self.visible():
+            self.selected_file = None
+            self.file_label.setText('')
+            self.url_field.setText('')
+            self.available_radio_button.click()
+        PluginManager.update_cache()
+        # Add all available plugins to the available plugin list
         self.available_plugin_list.clear()
         available_plugins = PluginManager.get_all_available()
         for plugin in available_plugins:
@@ -66,26 +64,40 @@ class AddPluginPanel(BasePanel):
             ]))
 
     def add_plugin(self):
-        """Finally add the chosen plugin"""
+        """Add the chosen plugin or show a message"""
+        message = self._add_plugin()
+        if message is not None:
+            QtWidgets.QMessageBox().critical(App.get_window(), App.get_name(), message)
+        else:
+            window = App.get_window()
+            window.set_view(self.get_plugins_panel())
+            window.remove_view(self)
+
+    def _add_plugin(self):
+        """Chose a plugin or return a message"""
         if self.available_radio_button.isChecked():
             selectedPlugin = self.available_plugin_list.currentItem()
-            if (selectedPlugin is None):
-                return self.displayError('Please select an available plugin to install')
-            PluginManager.install(selectedPlugin.text(0))
-        if self.file_radio_button.isChecked():
-            if (self.selected_file is None):
-                return self.displayError('Please choose a plugin file to install')
-            PluginManager.install_archive(self.selected_file)
-        if self.url_radio_button.isChecked():
+            if selectedPlugin is None:
+                return 'Please select an available plugin to install'
+            elif not PluginManager.install(selectedPlugin.text(0)):
+                return f'Could not install plugin "{selectedPlugin}"'
+        elif self.file_radio_button.isChecked():
+            if self.selected_file is None:
+                return 'Please choose a plugin archive to install'
+            elif not PluginManager.install_archive(self.selected_file):
+                return f'Could not install plugin from archive "{self.selected_file}"'
+        elif self.url_radio_button.isChecked():
             url = self.url_field.text()
-            if (self.selected_file is None):
-                return self.displayError('Please provide a plugin url to install')
-            PluginManager.install_archive_from_url(url)
-        App.open_manage_plugins()
+            if url is None:
+                return 'Please provide a plugin url to install'
+            elif not PluginManager.install_archive_from_url(url):
+                return f'Could not install plugin from URL "{url}"'
+        return None
 
     def enable_available_selection(self):
         """enable available plugin selection"""
         self.available_plugin_list.setEnabled(True)
+        self.refresh_available_button.setEnabled(True)
         self.disable_file_selection()
         self.disable_url_selection()
 
@@ -105,6 +117,7 @@ class AddPluginPanel(BasePanel):
     def disable_available_selection(self):
         """disables the available selection fields"""
         self.available_plugin_list.setEnabled(False)
+        self.refresh_available_button.setEnabled(False)
 
     def disable_file_selection(self):
         """disables the file selection fields"""
@@ -119,16 +132,14 @@ class AddPluginPanel(BasePanel):
         """open file dialog, save chosen file to self.selected_file"""
         fileDialog = QtWidgets.QFileDialog()
         fileDialog.setFileMode(QtWidgets.QFileDialog.ExistingFile)
+        filters = [
+            'Plugin Archives Files (*.zip *.tar *.tar.gz *.tar.bz2 *.tar.xz)',
+            'Any Files (*)'
+        ]
+        fileDialog.setNameFilters(filters)
         if fileDialog.exec_():
             self.selected_file = fileDialog.selectedFiles()[0]
             self.file_label.setText(self.selected_file)
-
-    def displayError(self, message):
-        """display a validation message to the user"""
-        messageBox = QtWidgets.QMessageBox()
-        messageBox.setIcon(QtWidgets.QMessageBox.Critical)
-        messageBox.setText(message)
-        messageBox.exec()
 
     def refreshAvailableList(self):
         """refresh list of available plugins"""

@@ -1,11 +1,12 @@
 """MEG Application Class
 """
 
+import sys
 import pkg_resources
-from PyQt5 import QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from meg_runtime.config import Config
 from meg_runtime.logger import Logger
-from meg_runtime.git import GitManager, GitRepository
+from meg_runtime.git import GitManager
 from meg_runtime.plugins import PluginManager
 from meg_runtime import ui
 
@@ -16,7 +17,8 @@ class App(QtWidgets.QApplication):
 
     NAME = 'Multimedia Extensible Git'
     VERSION = '0.1'
-    ICON_PATH = 'meg.ico'
+    ICON_PATH = 'ui/images/git.svg'
+    URL = 'https://github.com/MultimediaExtensibleGit'
 
     __instance = None
 
@@ -32,6 +34,8 @@ class App(QtWidgets.QApplication):
             App.__instance = self
             self._ui_manager = None
             self._main_panel = None
+            self._plugins_panel = None
+            self._clone_panel = None
 
     @staticmethod
     def get_instance():
@@ -41,30 +45,50 @@ class App(QtWidgets.QApplication):
     @staticmethod
     def get_window():
         """Get the application window"""
-        if not App.__instance:
+        if App.__instance is None:
             return None
         return App.__instance._ui_manager
 
     @staticmethod
     def get_main_panel():
         """Get the main application panel"""
+        if App.__instance is None:
+            return None
+        return App.__instance.main_panel()
+
+    @staticmethod
+    def get_clone_panel():
+        """Get the clone repository application panel"""
+        if App.__instance is None:
+            return None
+        return App.__instance.clone_panel()
+
+    @staticmethod
+    def get_plugins_panel():
+        """Get the manage plugins application panel"""
         if not App.__instance:
             return None
-        return App.__instance._main_panel
+        return App.__instance.plugins_panel()
 
     @staticmethod
     def get_name():
         """Get application name"""
-        return None if not App.__instance else App.__instance.name()
+        return None if App.__instance is None else App.__instance.name()
 
     @staticmethod
     def get_version():
         """Get application version"""
-        return None if not App.__instance else App.__instance.version()
+        return None if App.__instance is None else App.__instance.version()
 
     @staticmethod
     def get_icon():
-        return None if not App.__instance else App.__instance.icon()
+        """Get application icon path"""
+        return None if App.__instance is None else App.__instance.icon()
+
+    @staticmethod
+    def get_url():
+        """Get application URL"""
+        return None if App.__instance is None else App.__instance.url()
 
     @staticmethod
     def quit(exit_code=0):
@@ -80,7 +104,30 @@ class App(QtWidgets.QApplication):
         return App.VERSION
 
     def icon(self):
+        """Get the application icon path"""
         return pkg_resources.resource_filename(__name__, App.ICON_PATH)
+
+    def url(self):
+        """Get application URL"""
+        return App.URL
+
+    def main_panel(self):
+        """Get the application main panel"""
+        if self._main_panel is None:
+            self._main_panel = ui.MainPanel()
+        return self._main_panel
+
+    def clone_panel(self):
+        """Get the application clone repository panel"""
+        if self._clone_panel is None:
+            self._clone_panel = ui.ClonePanel()
+        return self._clone_panel
+
+    def plugins_panel(self):
+        """Get the application manage plugins panel"""
+        if self._plugins_panel is None:
+            self._plugins_panel = ui.PluginsPanel()
+        return self._plugins_panel
 
     def on_start(self):
         """On application start"""
@@ -110,60 +157,58 @@ class App(QtWidgets.QApplication):
     @staticmethod
     def run(**kwargs):
         """Run the application UI"""
-        if not App.__instance:
+        if App.__instance is None:
             App()
-        if App.__instance:
+        if App.__instance is not None:
             # On application start
-            App.__instance.on_start()
+            instance = App.get_instance()
+            instance.on_start()
             # Run the UI
             ui_manager = ui.UIManager(**kwargs)
-            App.__instance._ui_manager = ui_manager
-            # Set the main panel to start
-            App.__instance._main_panel = ui.MainPanel()
+            instance._ui_manager = ui_manager
             # Show the main panel
             App.return_to_main()
             # Show the window
             ui_manager.show()
             # Launch application
-            ret = App.__instance.exec_()
+            ret = instance.exec_()
             # On application stop
-            App.__instance.on_stop()
+            instance.on_stop()
             # Exit the application
-            App.__instance.exit(ret)
+            instance.exit(ret)
 
     @staticmethod
     def open_about():
         """Open the about menu."""
-        desc = (f'<center><h3>{App.get_name()}</h3><p>Version {App.get_version()}</p></center>')
+        desc = (f'<center><h2>{App.get_name()}</h2>'
+                f'<p><b>Version {App.get_version()}</b><br/>'
+                f'<a href="{App.get_url()}">{App.get_url()}</a></p>'
+                f'<p>Qt version {QtCore.QT_VERSION_STR}<br/>'
+                f'PyQt version {QtCore.PYQT_VERSION_STR}<br/>'
+                f'Python version {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}<br/>'
+                f'Font Awesome version 5.13.0</p></center>')
         QtWidgets.QMessageBox.about(App.get_window(), f'About {App.get_name()}', desc)
 
     @staticmethod
-    def open_manage_plugins():
+    def open_plugins_panel():
         """Open the manage plugins window."""
-        App.get_window().push_view(ui.PluginsPanel())
-
-    @staticmethod
-    def open_add_plugin():
-        """"Open the new plugin window"""
-        App.get_window().push_view(ui.AddPluginPanel())
-
-    @staticmethod
-    def open_repo(repo_url, repo_path):
-        """Open a specific repo."""
-        try:
-            repo = GitRepository(repo_path)
-            App.get_window().push_view(ui.RepoPanel(repo_url=repo_url, repo_path=repo_path, repo=repo))
-        except Exception as e:
-            Logger.warning(f'MEG UIManager: {e}')
-            Logger.warning(f'MEG UIManager: Could not load repo in "{repo_path}"')
-            # Popup
-            QtWidgets.QMessageBox.warning(App.get_window(), App.get_name(), f'Could not load the repo "{repo_path}"')
+        App.get_window().set_view(App.get_plugins_panel())
 
     @staticmethod
     def open_clone_panel():
-        """"Download" or clone a project."""
-        # TODO
-        App.get_window().push_view(ui.ClonePanel())
+        """Clone a repository."""
+        App.get_window().set_view(App.get_clone_panel())
+
+    @staticmethod
+    def open_repo_panel():
+        """Open a repository."""
+        dialog = QtWidgets.QFileDialog()
+        # Only allow directories
+        dialog.setFileMode(QtWidgets.QFileDialog.Directory)
+        dialog.setOption(QtWidgets.QFileDialog.ShowDirsOnly, True)
+        if dialog.exec_():
+            repo = GitManager.open(dialog.selectedFiles()[0])
+            App.get_window().push_view(ui.RepoPanel(repo))
 
     @staticmethod
     def return_to_main():

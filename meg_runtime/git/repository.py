@@ -36,7 +36,7 @@ class GitRepository(Repository):
         # Initialize the git repository super class
         super().__init__(path, *args, **kwargs)
         self.__permissions = Permissions()
-        self.__locking = Locking(self)
+        self.__locking = Locking(self.permissions)
 
     @property
     def locking(self):
@@ -45,6 +45,12 @@ class GitRepository(Repository):
     @property
     def permissions(self):
         return self.__permissions
+
+    @property
+    def path(self):
+        if not self.is_empty:
+            return self.workdir
+        return super().path
 
     # Git repository destructor
     def __del__(self):
@@ -110,8 +116,6 @@ class GitRepository(Repository):
     def pull(self, remote_name='origin', fail_on_conflict=False, username=None, password=None):
         """Pull and merge
         Merge is done fully automaticly, currently uses 'ours' on conflicts
-        TODO: Preform a proper merge with the locking used to resolve conflicts
-        4/13/20 21 - seems to be working for both merge types
 
         Args:
             remote_ref_name (string): name of reference to the remote being pulled from
@@ -149,47 +153,66 @@ class GitRepository(Repository):
                 # Find files not to staged (because lock, permissions,...) and discard changes so merging can occur
                 badPaths = [entry.path for entry in self.stageChanges(username)]
                 self.checkout_head(strategy=pygit2.GIT_CHECKOUT_FORCE, paths=badPaths)
-                self.preformMerge(remoteId, username)
+                # Merge will stage changes automaticly and find conflicts
+                self.merge(remoteId)
+                if self.index.conflicts is not None:
+                    self.resolveLockingPermissionsMerge()
+                    self.resolveGeneralMerge(username)
+                # Check there are no merge conflicts before committing
+                if self.index.conflicts is None or len(self.index.conflicts) == 0:
+                    # Commit the merge
+                    self.index.add_all()
+                    self.create_commit('HEAD', self.default_signature, self.default_signature, "MEG MERGE", self.index.write_tree(), [self.head.target, remoteId])
                 self.push(remote_name, username, password)
             self.state_cleanup()
             self.__permissions.load()
         return True
 
-    def preformMerge(self, remoteId, username):
-        """Merge and commit
+    def resolveLockingPermissionsMerge(self):
+        """Resolve conflicts on the locking or permissions files
         """
-        # Merge will stage changes automaticly and find conflicts
-        self.merge(remoteId)
-        conflitPaths = []
-        if self.index.conflicts is not None:
-            for conflict in self.index.conflicts:
-                path = self.pathFromConflict(conflict)
-                conflitPaths.append(path)
-                if not self.__permissions.can_write(username, path):
-                    # Not allowed to write, use theirs
-                    self.writeConflictResolution(conflict[2], path)
-                elif not self.__locking.findLock(path) is None:
-                    if self.__locking.findLock(path)["user"] != username:
-                        # Is locked by not the local user, use theirs
-                        self.writeConflictResolution(conflict[2], path)
-                    else:
-                        # Else its our lock
-                        self.writeConflictResolution(conflict[1], path)
-                elif path == Locking.LOCKFILE_PATH:
-                    # For conflicting Locks that have been changed on remote, it is safest to discard local version and accept the remote
-                    self.writeConflictResolution(conflict[2], path)
-                elif path == Permissions.PERMISSION_PATH:
-                    # For conflicting Permissions that have been changed on remote, it is safest to discard local version and accept the remote
+        resolved_conflicts = []
+        for conflict in self.index.conflicts:
+            path = self.pathFromConflict(conflict)
+            # For conflicting Locks or Permissions that have been changed on remote, it is safest to discard local version and accept the remote
+            # Then reload the respective modules
+            if path == Locking.LOCKFILE_PATH:
+                self.writeConflictResolution(conflict[2], path)
+                self.__locking.load()
+            elif path == Permissions.PERMISSION_PATH:
+                self.writeConflictResolution(conflict[2], path)
+                self.__permissions.load()
+        # Remove all resolved conflicts
+        for conflict in resolved_conflicts:
+            del self.index.conflicts[conflict]
+
+    def resolveGeneralMerge(self, username):
+        """Resolve all remaining conflicts
+        TODO: Some other merge logic from plugins and other stuff
+        """
+        # Resolve remaining conflicts
+        resolved_conflicts = []
+        for conflict in self.index.conflicts:
+            path = self.pathFromConflict(conflict)
+            if not self.__permissions.can_write(username, path):
+                # Not allowed to write, use theirs
+                self.writeConflictResolution(conflict[2], path)
+            elif not self.__locking.findLock(path) is None:
+                if self.__locking.findLock(path)["user"] != username:
+                    # Is locked by not the local user, use theirs
                     self.writeConflictResolution(conflict[2], path)
                 else:
-                    # TODO: Some other merge logic from plugins and other stuff
-                    # Currently just use ours
+                    # Else its our lock
                     self.writeConflictResolution(conflict[1], path)
-            for conflit in conflitPaths:
-                del self.index.conflicts[conflit]
-        # Commit the merge
-        self.index.add_all()
-        self.create_commit('HEAD', self.default_signature, self.default_signature, "MEG MERGE", self.index.write_tree(), [self.head.target, remoteId])
+            else:
+                # TODO: Some other merge logic from plugins and other stuff
+                # Currently just use ours
+                self.writeConflictResolution(conflict[1], path)
+            # Add path to resolve conflict
+            resolved_conflicts.append(path)
+        # Remove all resolved conflicts
+        for conflict in resolved_conflicts:
+            del self.index.conflicts[conflict]
 
     def writeConflictResolution(self, indexEntry, path):
         """For simple merge conflict resolution, writes contentes of index entry to file
