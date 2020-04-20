@@ -15,31 +15,7 @@ class Permissions(dict):
 
     def __init__(self):
         """Load the repository permission file"""
-        self.update({
-            "roles": {
-                "default": [],
-                "admin": []
-            },
-            "files": {},
-            "general": {
-                "users_remove_locks": [],
-                "roles_remove_locks": ["default", "admin"],
-                "users_add_locks": [],
-                "roles_add_locks": ["default", "admin"],
-                "users_write": [],
-                "roles_write": ["default", "admin"],
-                "users_grant": [],
-                "roles_grant": ["default", "admin"],
-                "users_modify_roles": [],
-                "roles_modify_roles": ["default", "admin"]
-            }
-        })
-        try:
-            self.update(json.load(open(Permissions.PERMISSION_PATH)))
-        except FileNotFoundError as e:
-            # Log that loading the configuration failed
-            Logger.warning('MEG Permission: {0}'.format(e))
-            Logger.warning('MEG Permission: Could not load permissions file <' + Permissions.PERMISSION_PATH + '>, using default permissions')
+        self.load()
 
     def get_users(self):
         """Returns a list of all users and their roles
@@ -123,6 +99,34 @@ class Permissions(dict):
         if not os.path.exists(Permissions.PERMISSION_PATH):
             os.makedirs(os.path.dirname(Permissions.PERMISSION_PATH), exist_ok=True)
         json.dump(self, open(Permissions.PERMISSION_PATH, 'w+'))
+
+    def load(self):
+        """Load the repository permission file"""
+        self.update({
+            "roles": {
+                "default": [],
+                "admin": []
+            },
+            "files": {},
+            "general": {
+                "users_remove_locks": [],
+                "roles_remove_locks": ["default", "admin"],
+                "users_add_locks": [],
+                "roles_add_locks": ["default", "admin"],
+                "users_write": [],
+                "roles_write": ["default", "admin"],
+                "users_grant": [],
+                "roles_grant": ["default", "admin"],
+                "users_modify_roles": [],
+                "roles_modify_roles": ["default", "admin"]
+            }
+        })
+        try:
+            self.update(json.load(open(Permissions.PERMISSION_PATH)))
+        except FileNotFoundError as e:
+            # Log that loading the configuration failed
+            Logger.warning('MEG Permission: {0}'.format(e))
+            Logger.warning('MEG Permission: Could not load permissions file <' + Permissions.PERMISSION_PATH + '>, using default permissions')
 
     def _get_roles(self, user):
         """Get a list of users from the configuration file."""

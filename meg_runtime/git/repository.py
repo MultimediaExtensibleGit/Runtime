@@ -152,7 +152,7 @@ class GitRepository(Repository):
                 self.preformMerge(remoteId, username)
                 self.push(remote_name, username, password)
             self.state_cleanup()
-            self.__permissions = Permissions()
+            self.__permissions.load()
         return True
 
     def preformMerge(self, remoteId, username):
