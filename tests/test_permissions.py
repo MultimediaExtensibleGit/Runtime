@@ -33,3 +33,17 @@ def test_permissions_02(change_to_test_directory):
 
     assert perms.can_write('user1', 'a')
     assert not perms.can_write('user1', 'b')
+
+
+def test_getUsers(change_to_test_directory):
+    Permissions.PERMISSION_PATH = 'test_permissions_01.json'
+    perms = Permissions()
+    users = perms.get_users()
+    for user, roles in users:
+        if user == "user1":
+            assert len(roles) == 2
+            assert "manager" in roles
+        if user == "user4":
+            assert len(roles) == 3
+            assert "manager" in roles
+            assert "engineer" in roles

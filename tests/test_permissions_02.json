@@ -1,6 +1,5 @@
 {
     "roles": {
-        "default": [],
         "admin": []
     },
     "files": {

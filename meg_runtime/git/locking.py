@@ -154,7 +154,6 @@ class Locking:
         Returns:
             (bool): False if lockfile cannot be read
         """
-        print("LOADING LOCK FILE")
         self.__lockData = {}
         self._generateLockFile()
         data = None
@@ -189,8 +188,7 @@ class Locking:
     def _generateLockFile(self):
         """If the lock file doesn't exist, generate the directory tree and create the file
         """
-        print(os.path.isfile(Locking.LOCKFILE_PATH))
         if not os.path.isfile(Locking.LOCKFILE_PATH):
-            print("CRATEING LOCK FILE")
+            Logger.info("MEG LOCKING: GENERATING LOCK FILE")
             os.makedirs(os.path.dirname(Locking.LOCKFILE_PATH), exist_ok=True)
             open(Locking.LOCKFILE_PATH, 'w+').close()

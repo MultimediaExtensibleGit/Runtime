@@ -1,7 +1,7 @@
 {
     "roles": {
-        "manager": ["user1"],
-        "engineer": ["user2", "user3"]
+        "manager": ["user1", "user4"],
+        "engineer": ["user2", "user3", "user4"]
     },
     "files": {
         "a": {

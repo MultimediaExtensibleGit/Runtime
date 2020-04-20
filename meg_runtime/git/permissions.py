@@ -19,11 +19,20 @@ class Permissions(dict):
 
     def get_users(self):
         """Returns a list of all users and their roles
-        TODO
+
         Returns:
-            (list((username, list(roles)))): List of truples containing usernames and a list of their roles
+            ([(user(string), [role(string)])]): List of truples containing usernames and a list of their roles
         """
-        pass
+        users = {}
+        for role, userList in self['roles'].items():
+            for user in userList:
+                if user in users:
+                    users[user].append(role)
+                else:
+                    users[user] = [role]
+        for roles in users.values():
+            roles.append("default")
+        return [(user, users[user]) for user in users.keys()]
 
     def can_lock(self, user):
         """Return True if the current user can lock a specific path"""
