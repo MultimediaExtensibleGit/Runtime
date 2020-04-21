@@ -1,6 +1,9 @@
 
+import platform
+import os
 import os.path
 from PyQt5 import QtCore, QtWidgets
+import subprocess
 
 from meg_runtime.app import App
 from meg_runtime.config import Config
