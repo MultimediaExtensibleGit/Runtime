@@ -226,10 +226,10 @@ class Permissions(dict):
         })
         try:
             self.update(json.load(open(Permissions.PERMISSION_PATH)))
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             # Log that loading the configuration failed
-            Logger.warning('MEG Permission: {0}'.format(e))
-            Logger.warning('MEG Permission: Could not load permissions file <' + Permissions.PERMISSION_PATH + '>, using default permissions')
+            Logger.info('MEG PERMISSIONS: Could not load permissions file <' + Permissions.PERMISSION_PATH + '>, using default permissions')
+            self.save()
 
     def get_roles(self, user):
         """Get a list of users from the configuration file."""
