@@ -7,43 +7,20 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>511</height>
+    <height>300</height>
    </rect>
-  </property>
-  <property name="windowTitle">
-   <string>Plugins</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="pluginLabel">
-     <property name="font">
-      <font>
-       <pointsize>14</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>Plugins</string>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="QTreeWidget" name="pluginList">
-     <property name="font">
-      <font>
-       <pointsize>8</pointsize>
-      </font>
-     </property>
      <property name="alternatingRowColors">
       <bool>true</bool>
      </property>
      <property name="selectionMode">
       <enum>QAbstractItemView::SingleSelection</enum>
      </property>
-     <property name="indentation">
-      <number>0</number>
-     </property>
      <property name="uniformRowHeights">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="itemsExpandable">
       <bool>false</bool>
@@ -51,17 +28,14 @@
      <property name="sortingEnabled">
       <bool>true</bool>
      </property>
-     <property name="headerHidden">
+     <property name="expandsOnDoubleClick">
       <bool>false</bool>
      </property>
      <attribute name="headerVisible">
       <bool>true</bool>
      </attribute>
-     <attribute name="headerMinimumSectionSize">
-      <number>75</number>
-     </attribute>
-     <attribute name="headerDefaultSectionSize">
-      <number>75</number>
+     <attribute name="headerCascadingSectionResizes">
+      <bool>true</bool>
      </attribute>
      <column>
       <property name="text">

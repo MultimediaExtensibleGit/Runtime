@@ -21,7 +21,11 @@ class RepoPanel(BasePanel):
 
     def get_title(self):
         """Get the title of this panel."""
-        return os.path.basename(os.path.abspath(self._repo.path))
+        return f'{os.path.basename(os.path.abspath(self._repo.path))} : {self._repo.head.shorthand}'
+
+    def get_status(self):
+        """Get the status of this panel."""
+        return f'{self._repo.head.shorthand} : {self._repo.path}'
 
     def get_changes(self):
         """Do a pull for the repository."""
@@ -36,8 +40,6 @@ class RepoPanel(BasePanel):
     def on_load(self):
         """Load dynamic elements within the panel."""
         instance = self.get_widgets()
-        self._main_button = instance.findChild(QtWidgets.QPushButton, 'mainMenu')
-        self._main_button.clicked.connect(App.return_to_main)
         self._get_changes_button = instance.findChild(QtWidgets.QPushButton, 'getChanges')
         self._get_changes_button.clicked.connect(self.get_changes)
         self._send_changes_button = instance.findChild(QtWidgets.QPushButton, 'sendChanges')
@@ -47,6 +49,8 @@ class RepoPanel(BasePanel):
         if os.path.exists(self._repo.path):
             path = self._repo.path
             self.tree_view = FileChooser(instance.findChild(QtWidgets.QTreeView, 'treeView'), path)
+            header = self.tree_view._tree_view.header()
+            header.resizeSection(0, header.sectionSize(0) * 3)
             # Setup a double click function if necessary
             self.tree_view.set_double_click_handler(self._handle_double_clicked)
         else:
@@ -54,7 +58,7 @@ class RepoPanel(BasePanel):
 
     def on_show(self):
         """Showing the panel."""
-        self._branch_name_label.setText(self._repo.head.shorthand)
+        self._branch_name_label.setText(self.get_status())
 
     def _handle_double_clicked(self, item):
         """Handle double clicking of a file (open it with another program)."""

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>AddPluginPanel</class>
+ <widget class="QWidget" name="AddPluginPanel">
   <property name="enabled">
    <bool>true</bool>
   </property>
@@ -13,14 +13,11 @@
     <height>593</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>Form</string>
-  </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QRadioButton" name="availableRadioButton">
      <property name="text">
-      <string>Choose Available Plugin</string>
+      <string>Choose Available Plugin:</string>
      </property>
      <property name="checked">
       <bool>true</bool>
@@ -32,11 +29,20 @@
      <property name="enabled">
       <bool>true</bool>
      </property>
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <property name="uniformRowHeights">
+      <bool>true</bool>
+     </property>
      <property name="itemsExpandable">
       <bool>false</bool>
      </property>
      <property name="sortingEnabled">
       <bool>true</bool>
+     </property>
+     <property name="expandsOnDoubleClick">
+      <bool>false</bool>
      </property>
      <column>
       <property name="text">
@@ -50,7 +56,7 @@
      </column>
      <column>
       <property name="text">
-       <string>New Column</string>
+       <string>Author</string>
       </property>
      </column>
      <column>
@@ -82,7 +88,7 @@
        <number>0</number>
       </property>
       <item>
-       <spacer name="horizontalSpacer_3">
+       <spacer name="horizontalSpacer_2">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -96,6 +102,18 @@
       </item>
       <item>
        <widget class="QPushButton" name="refreshAvailableButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
          <string>Refresh List</string>
         </property>
@@ -114,7 +132,7 @@
    <item>
     <widget class="QRadioButton" name="fileRadioButton">
      <property name="text">
-      <string>Select File</string>
+      <string>Choose Plugin Archive:</string>
      </property>
     </widget>
    </item>
@@ -144,11 +162,20 @@
         <property name="enabled">
          <bool>false</bool>
         </property>
-        <property name="whatsThis">
-         <string/>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+          <horstretch>20</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>16777215</height>
+         </size>
         </property>
         <property name="text">
-         <string>Choose File</string>
+         <string>Choose Archive</string>
         </property>
        </widget>
       </item>
@@ -157,23 +184,16 @@
         <property name="enabled">
          <bool>false</bool>
         </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>50</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="text">
          <string/>
         </property>
        </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
       </item>
      </layout>
     </widget>
@@ -188,7 +208,7 @@
    <item>
     <widget class="QRadioButton" name="urlRadioButton">
      <property name="text">
-      <string>Provide Plugin URL</string>
+      <string>Provide Plugin Archive URL:</string>
      </property>
     </widget>
    </item>
@@ -242,6 +262,18 @@
       </item>
       <item>
        <widget class="QPushButton" name="addButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>120</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
          <string>Add</string>
         </property>
