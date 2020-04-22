@@ -35,8 +35,8 @@ class GitRepository(Repository):
             self.__dict__ = clone_repository(url, path, bare=bare, checkout_branch=checkout_branch).__dict__
         # Initialize the git repository super class
         super().__init__(path, *args, **kwargs)
-        self.__permissions = Permissions(self.path)
-        self.__locking = Locking(self.permissions, self.path)
+        self.__permissions = Permissions(path)
+        self.__locking = Locking(self.__permissions, path)
 
     @property
     def locking(self):
@@ -223,7 +223,7 @@ class GitRepository(Repository):
             if os.path.exists(path):
                 os.remove(path)
         else:
-            open(path, "w+b").write(self.get(indexEntry.id).data)
+            open(os.path.join(self.path, path), "w+b").write(self.get(indexEntry.id).data)
 
     def pathFromConflict(self, indexConflict):
         """Returns path of conflict from index.conflicts entry
