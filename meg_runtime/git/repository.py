@@ -160,6 +160,9 @@ class GitRepository(Repository):
                 if self.index.conflicts is not None:
                     self.resolveLockingPermissionsMerge()
                     self.resolveGeneralMerge(username)
+                else:
+                     self.__permissions.load()
+                     self.__locking.load()
                 # Check there are no merge conflicts before committing
                 if self.index.conflicts is None or len(self.index.conflicts) == 0:
                     # Commit the merge
@@ -167,8 +170,6 @@ class GitRepository(Repository):
                     self.create_commit('HEAD', self.default_signature, self.default_signature, "MEG MERGE", self.index.write_tree(), [self.head.target, remoteId])
                 self.push(remote_name, username, password)
             self.state_cleanup()
-            self.__permissions.load()
-            self.__locking.load()
         return True
 
     def resolveLockingPermissionsMerge(self):
