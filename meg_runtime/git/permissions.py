@@ -13,8 +13,9 @@ class Permissions(dict):
 
     PERMISSION_PATH = ".meg/permissions.json"
 
-    def __init__(self):
+    def __init__(self, path):
         """Load the repository permission file"""
+        self.__path = os.path.join(path, Permissions.PERMISSION_PATH)
         self.load()
 
     def get_users(self):
@@ -199,9 +200,9 @@ class Permissions(dict):
 
     def save(self):
         """Save currenly held permissions / roles to file"""
-        if not os.path.exists(Permissions.PERMISSION_PATH):
-            os.makedirs(os.path.dirname(Permissions.PERMISSION_PATH), exist_ok=True)
-        json.dump(self, open(Permissions.PERMISSION_PATH, 'w+'))
+        if not os.path.exists(self.__path):
+            os.makedirs(os.path.dirname(self.__path), exist_ok=True)
+        json.dump(self, open(self.__path, 'w+'))
 
     def load(self):
         """Load the repository permission file"""
@@ -225,10 +226,10 @@ class Permissions(dict):
             }
         })
         try:
-            self.update(json.load(open(Permissions.PERMISSION_PATH)))
+            self.update(json.load(open(self.__path)))
         except FileNotFoundError:
             # Log that loading the configuration failed
-            Logger.info('MEG PERMISSIONS: Could not load permissions file <' + Permissions.PERMISSION_PATH + '>, using default permissions')
+            Logger.info('MEG PERMISSIONS: Could not load permissions file <' + self.__path + '>, using default permissions')
             self.save()
 
     def get_roles(self, user):

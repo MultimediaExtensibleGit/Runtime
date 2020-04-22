@@ -7,7 +7,7 @@ import os
 
 @pytest.fixture("module")
 def generateLockFile():
-    lock = Locking(mock.MagicMock())
+    lock = Locking(mock.MagicMock(), ".")
     lock.save()
     yield
     if os.path.exists(".meg"):
@@ -19,7 +19,7 @@ def populateLocks():
     permissionsMock = mock.MagicMock()
     permissionsMock.can_remove_lock.return_value = False
     permissionsMock.can_lock.return_value = True
-    lock = Locking(permissionsMock)
+    lock = Locking(permissionsMock, ".")
     lock.clear()
     lock.addLock("jeff", "project/jeffsPart.dwg")
     lock.addLock("bob", "project/jeffs2ndPart.dwg")
@@ -56,7 +56,7 @@ def test_findLock(populateLocks):
 def test_addLock():
     permissionsMock = mock.MagicMock()
     permissionsMock.can_lock.return_value = True
-    locking = Locking(permissionsMock)
+    locking = Locking(permissionsMock, ".")
     locking.clear()
     assert locking.addLock("jeff", "project/jeffsPart.dwg")
     assert not locking.addLock("bob", "project/jeffsPart.dwg")  # Lock belonging to someone else already exists

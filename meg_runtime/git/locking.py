@@ -19,9 +19,10 @@ class Locking:
     """
     LOCKFILE_PATH = ".meg/locks.json"
 
-    def __init__(self, permissions, blob=None):
+    def __init__(self, permissions, path, blob=None):
         self.__permissions = permissions
         self.__lockData = {}
+        self.__path = os.path.join(path, Locking.LOCKFILE_PATH)
         if blob is None:
             self.load()
         else:
@@ -131,8 +132,8 @@ class Locking:
         Must be ran to save any new or removed locks
         Will create file if it doesn't already exist
         """
-        os.makedirs(os.path.dirname(Locking.LOCKFILE_PATH), exist_ok=True)
-        with open(Locking.LOCKFILE_PATH, 'w+') as lockfile:
+        os.makedirs(os.path.dirname(self.__path), exist_ok=True)
+        with open(self.__path, 'w+') as lockfile:
             json.dump(self.__lockData, lockfile)
             lockfile.close()
 
@@ -158,11 +159,11 @@ class Locking:
         self._generateLockFile()
         data = None
         try:
-            with open(Locking.LOCKFILE_PATH, 'r') as lockfile:
+            with open(self.__path, 'r') as lockfile:
                 data = json.load(lockfile)
                 lockfile.close()
         except json.decoder.JSONDecodeError:
-            Logger.warning("MEG Locking: Unable to read contents of lock file at {0}".format(Locking.LOCKFILE_PATH))
+            Logger.warning("MEG Locking: Unable to read contents of lock file at {0}".format(self.__path))
             return False
         if data is not None:
             self.__lockData = data
@@ -188,7 +189,7 @@ class Locking:
     def _generateLockFile(self):
         """If the lock file doesn't exist, generate the directory tree and create the file
         """
-        if not os.path.isfile(Locking.LOCKFILE_PATH):
+        if not os.path.isfile(self.__path):
             Logger.info("MEG LOCKING: GENERATING LOCK FILE")
-            os.makedirs(os.path.dirname(Locking.LOCKFILE_PATH), exist_ok=True)
-            open(Locking.LOCKFILE_PATH, 'w+').close()
+            os.makedirs(os.path.dirname(self.__path), exist_ok=True)
+            open(self.__path, 'w+').close()

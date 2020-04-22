@@ -35,8 +35,8 @@ class GitRepository(Repository):
             self.__dict__ = clone_repository(url, path, bare=bare, checkout_branch=checkout_branch).__dict__
         # Initialize the git repository super class
         super().__init__(path, *args, **kwargs)
-        self.__permissions = Permissions()
-        self.__locking = Locking(self.permissions)
+        self.__permissions = Permissions(self.path)
+        self.__locking = Locking(self.permissions, self.path)
 
     @property
     def locking(self):
@@ -166,6 +166,7 @@ class GitRepository(Repository):
                 self.push(remote_name, username, password)
             self.state_cleanup()
             self.__permissions.load()
+            self.__locking.load()
         return True
 
     def resolveLockingPermissionsMerge(self):
@@ -176,12 +177,10 @@ class GitRepository(Repository):
             path = self.pathFromConflict(conflict)
             # For conflicting Locks or Permissions that have been changed on remote, it is safest to discard local version and accept the remote
             # Then reload the respective modules
-            if path == Locking.LOCKFILE_PATH:
+            if path == Locking.LOCKFILE_PATH or path == Permissions.PERMISSION_PATH:
                 self.writeConflictResolution(conflict[2], path)
-                self.__locking.load()
-            elif path == Permissions.PERMISSION_PATH:
-                self.writeConflictResolution(conflict[2], path)
-                self.__permissions.load()
+        self.__locking.load()
+        self.__permissions.load()
         # Remove all resolved conflicts
         for conflict in resolved_conflicts:
             del self.index.conflicts[conflict]
