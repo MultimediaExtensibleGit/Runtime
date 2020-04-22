@@ -24,7 +24,7 @@ class ClonePanel(BasePanel):
         username = None
         password = None
         if self.enter_credentials_radio.isChecked():
-            (username, password) = self._open_credential_dialog()
+            (username, password) = App.open_credential_dialog()
         elif self.use_stored_credentials_radio.isChecked():
             pass
             # TODO
@@ -98,27 +98,3 @@ class ClonePanel(BasePanel):
         if dialog.exec_():
             self.directory = dialog.selectedFiles()[0]
             self.chosen_directory_label.setText(self.directory)
-
-    def _open_credential_dialog(self):
-        """Open a credential dialog for the user and return (username, password)."""
-        # Setup the dialog
-        dialog = QtWidgets.QDialog()
-        spacer = QtWidgets.QVBoxLayout()
-        spacer.addWidget(QtWidgets.QLabel('Username'))
-        username = QtWidgets.QLineEdit()
-        spacer.addWidget(username)
-        spacer.addWidget(QtWidgets.QLabel('Password'))
-        password = QtWidgets.QLineEdit()
-        password.setEchoMode(QtWidgets.QLineEdit.Password)
-        spacer.addWidget(password)
-        # Add the close button
-        button = QtWidgets.QPushButton('OK')
-        def ok_click():
-            """Handle the OK button click."""
-            dialog.done(0)
-        button.clicked.connect(ok_click)
-        spacer.addWidget(button)
-        dialog.setLayout(spacer)
-        # Execute it
-        dialog.exec_()
-        return (username.text(), password.text())
