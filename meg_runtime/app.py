@@ -16,7 +16,7 @@ class App(QtWidgets.QApplication):
     """Multimedia Extensible Git (MEG) Client Application"""
 
     NAME = 'Multimedia Extensible Git'
-    VERSION = '0.1'
+    VERSION = '0.1-alpha'
     ICON_PATH = 'ui/images/git.svg'
     URL = 'https://github.com/MultimediaExtensibleGit'
 
@@ -197,6 +197,8 @@ class App(QtWidgets.QApplication):
         # Setup the dialog
         dialog = QtWidgets.QDialog()
         spacer = QtWidgets.QVBoxLayout()
+        message = QtWidgets.QLabel('')
+        spacer.addWidget(message)
         spacer.addWidget(QtWidgets.QLabel('Username'))
         username = QtWidgets.QLineEdit()
         spacer.addWidget(username)
