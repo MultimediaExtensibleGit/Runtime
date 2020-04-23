@@ -158,6 +158,9 @@ class Permissions(dict):
             return True
         return False
 
+    def does_role_have_permission(self, role, permissionKey):
+        return role in self['general'][permissionKey]
+
     def add_user_permission(self, user, targetUser, key, path=None):
         """Add a permission to a user
         Defaults to general permissions, if file is given, permission will only apply to that file
